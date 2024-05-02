@@ -1,36 +1,64 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# ApiPython<br>
+Welcome to ApiPython, a robust web application designed to streamline your API integration process. Powered by Next.js, a React framework renowned for its versatility, and enriched with Python APIs, ApiPython offers seamless deployment on the Vercel platform.<br>
 
-## Getting Started
+# Highlights<br>
+Cutting-edge Technology: Harnesses the power of React 18 and Next.js 14 for optimal performance and scalability.<br>
 
-First, run the development server:
+Python API Integration: Incorporates three bespoke Python APIs tailored to your needs, ensuring smooth functionality.<br>
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Effortless Deployment: Deploy with ease on Vercel, leveraging its robust infrastructure for seamless scaling.<br>
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+# Getting Started<br>
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+To launch the development server locally, simply execute:<br>
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+- npm run dev
+- or
+- yarn dev
+- or
+- pnpm dev
+- or
+- bun dev
 
-## Learn More
+<strong>Application Overview</strong>
+<br>
 
-To learn more about Next.js, take a look at the following resources:
+Experience the live application at http://localhost:3000, where changes reflect instantly as you code.<br>
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# Structure Overview<br>
+Explore the application's structure:<br>
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+Pages: Start frontend modifications with app/page.js.<br>
+APIs: Backend logic resides in separate directories for clarity:<br>
+<br>
+<strong>
+- api1/ - Houses api1/api1.py <br>
+- api2/ - Houses api2/api2.py <br>
+- api3/ - Houses api3/api3.py <br>
+</strong>
+<br>
 
-## Deploy on Vercel
+# API Configuration<br>
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+ApiPython's APIs are configured to deploy effortlessly on Vercel:<br>
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+<strong>
+➤  API 1: Access at /api1/, pointing to api1/api1.py <br>
+➤  API 2: Access at /api2/, pointing to api2/api2.py <br>
+➤  API 3: Access at /api3/, pointing to api3/api3.py <br>
+</strong>
+<br>
+
+# Learning and Contributions<br>
+
+Delve deeper into Next.js:<br>
+
+Next.js Documentation: Comprehensive guide on features and APIs.<br>
+Learn Next.js: Engage with an interactive tutorial.<br>
+Contribute and provide feedback at the Next.js GitHub repository.<br>
+
+# Deployment Strategy<br>
+Seamlessly deploy using the Vercel Platform, with detailed guidelines available in our deployment documentation.
+
+# Font Optimization<br>
+ApiPython optimizes font loading with next/font, enhancing both performance and aesthetics with the Inter typeface.
