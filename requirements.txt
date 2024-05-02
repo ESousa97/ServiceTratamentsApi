@@ -19,7 +19,7 @@ Flask-Cors==4.0.0
 flatbuffers==24.3.25
 fsspec==2024.3.1
 gast==0.4.0
-google-auth==2.29.0  # Ajustado para versão mais recente compatível com Python 3.12
+google-auth==2.29.0
 google-auth-oauthlib==1.2.0
 google-pasta==0.2.0
 grpcio==1.62.2
