@@ -5,30 +5,12 @@
       "src": "api1/api1.py",
       "use": "@vercel/python",
       "config": { "runtime": "python-3.12" }
-    },
-    {
-      "src": "api2/api2.py",
-      "use": "@vercel/python",
-      "config": { "runtime": "python-3.12" }
-    },
-    {
-      "src": "api3/api3.py",
-      "use": "@vercel/python",
-      "config": { "runtime": "python-3.12" }
     }
   ],
   "routes": [
     {
       "src": "/api1/(.*)",
       "dest": "/api1/api1.py"
-    },
-    {
-      "src": "/api2/(.*)",
-      "dest": "/api2/api2.py"
-    },
-    {
-      "src": "/api3/(.*)",
-      "dest": "/api3/api3.py"
     }
   ]
 }
