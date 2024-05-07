@@ -4,7 +4,7 @@ module.exports = {
     return [
       {
         source: '/api/:path*',
-        destination: process.env.NODE_ENV === 'production' ? 'https://your-vercel-deployment-url/api/:path*' : 'http://localhost:5328/:path*',
+        destination: process.env.NODE_ENV === 'production' ? 'https://server-less-api-python1.vercel.app/api/:path*' : 'http://localhost:5000/:path*',
       },
     ]
   },
