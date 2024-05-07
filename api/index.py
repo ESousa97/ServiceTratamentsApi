@@ -5,7 +5,7 @@ import os
 app = Flask(__name__)
 CORS(app)  # Aplicando CORS para permitir acessos de qualquer origem
 
-@app.route('/')
+@app.route('/api/')
 def hello_world():
     return 'Hello, World!'
 
