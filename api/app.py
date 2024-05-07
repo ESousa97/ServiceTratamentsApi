@@ -2,14 +2,19 @@ from flask import Flask, request, jsonify, abort
 from flask_cors import CORS
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
-import re
 import nltk
+import os
+import re
 
 app = Flask(__name__)
 CORS(app, origins='*')
 
-nltk.download('punkt')
-nltk.download('stopwords')
+# Configuração do caminho NLTK
+nltk.data.path.append(os.path.join(os.getcwd(), 'nltk_data'))
+
+# Remova as chamadas de download
+# nltk.download('punkt')
+# nltk.download('stopwords')
 
 def preprocess_text(text):
     text = re.sub(r'[^\w\s]', '', text).lower()
