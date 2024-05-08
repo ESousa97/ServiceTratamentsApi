@@ -38,3 +38,6 @@ next-env.d.ts
 # Python bytecodes
 *.pyc
 __pycache__/
+
+#ignorar ambiente env
+env/
