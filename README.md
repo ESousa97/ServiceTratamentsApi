@@ -1,64 +1,138 @@
-# ApiPython<br>
-Welcome to ApiPython, a robust web application designed to streamline your API integration process. Powered by Next.js, a React framework renowned for its versatility, and enriched with Python APIs, ApiPython offers seamless deployment on the Vercel platform.<br>
+# Service Trataments Api
 
-# Highlights<br>
-Cutting-edge Technology: Harnesses the power of React 18 and Next.js 14 for optimal performance and scalability.<br>
+This project is a web application that uses Flask for the backend and Next.js for the frontend. The backend processes text notes to extract specific details and preprocesses the text. The frontend provides an interface to interact with this backend.
 
-Python API Integration: Incorporates three bespoke Python APIs tailored to your needs, ensuring smooth functionality.<br>
+## Features
+- Text preprocessing: Removes punctuation, converts text to lowercase, and filters out stopwords.
+- Detail extraction: Extracts specific information from the text based on predefined patterns.
+- CORS support: Allows cross-origin requests from any origin.
 
-Effortless Deployment: Deploy with ease on Vercel, leveraging its robust infrastructure for seamless scaling.<br>
+## Prerequisites
 
-# Getting Started<br>
+- Python 3.x
+- Node.js
+- NPM or Yarn
 
-To launch the development server locally, simply execute:<br>
+## Setup
 
-- npm run dev
-- or
-- yarn dev
-- or
-- pnpm dev
-- or
-- bun dev
+### Backend
 
-<strong>Application Overview</strong>
-<br>
+**1. Clone the repository:**
 
-Experience the live application at http://localhost:3000, where changes reflect instantly as you code.<br>
+```bash
 
-# Structure Overview<br>
-Explore the application's structure:<br>
+git clone <repository-url>
+cd <repository-directory>
 
-Pages: Start frontend modifications with app/page.js.<br>
-APIs: Backend logic resides in separate directories for clarity:<br>
-<br>
-<strong>
-- api1/ - Houses api1/api1.py <br>
-- api2/ - Houses api2/api2.py <br>
-- api3/ - Houses api3/api3.py <br>
-</strong>
-<br>
+```
 
-# API Configuration<br>
+**2. Set up a virtual environment:**
 
-ApiPython's APIs are configured to deploy effortlessly on Vercel:<br>
+```bash
 
-<strong>
-➤  API 1: Access at /api1/, pointing to api1/api1.py <br>
-➤  API 2: Access at /api2/, pointing to api2/api2.py <br>
-➤  API 3: Access at /api3/, pointing to api3/api3.py <br>
-</strong>
-<br>
+python -m venv env
+source env/bin/activate  # On Windows use `env\Scripts\activate`
 
-# Learning and Contributions<br>
+```
 
-Delve deeper into Next.js:<br>
+**3. Install the required Python packages:**
 
-Next.js Documentation: Comprehensive guide on features and APIs.<br>
-Learn Next.js: Engage with an interactive tutorial.<br>
-Contribute and provide feedback at the Next.js GitHub repository.<br>
+```bash
 
-# Deployment Strategy<br>
-Seamlessly deploy using the Vercel Platform, with detailed guidelines available in our deployment documentation.
+pip install -r requirements.txt
 
-# Font Optimization<br>
-ApiPython optimizes font loading with next/font, enhancing both performance and aesthetics with the Inter typeface.
+```
+
+**4. Set up NLTK data:**
+
+Download the necessary NLTK data files (if not already downloaded). Place the downloaded files in a directory named `nltk_data` within the project root.
+
+```bash
+
+import nltk
+nltk.download('punkt', download_dir='./nltk_data')
+nltk.download('stopwords', download_dir='./nltk_data')
+
+```
+
+# Running the Application
+
+### Backend
+
+Run the Flask server:
+
+```bash
+
+python app.py
+
+```
+
+The Flask server will be running on `http://127.0.0.1:5000`.
+
+# API Endpoints
+
+### `POST /process`
+
+Processes the provided text notes to extract specific details.
+
+### Request
+- Content-Type: application/json
+- Body:
+
+```bash
+
+{
+  "notes": [
+    "Your text note 1",
+    "Your text note 2"
+  ]
+}
+
+```
+### Response
+
+- Status: `200 OK`
+- Body: JSON array containing the extracted details from each note
+
+```bash
+
+[
+  {
+    "cause_by": "Detail extracted for cause by",
+    "testes_realizados_by": "Detail extracted for tests realizados by",
+    "solution_by": "Detail extracted for solution by",
+    "validated_by": "Detail extracted for validated by"
+  },
+  ...
+]
+
+```
+## Project Structure
+
+```bash
+
+my-nextjs-flask-app/
+│
+├── api
+     ├── app.py         # Flask application
+├── requirements.txt    # Python dependencies
+├── nltk_data/          # NLTK data files (to be downloaded)
+├── package.json        # Dependecies
+    └── ...             # Other files
+
+```
+
+### License
+
+This project is licensed under the MIT License.
+
+## Contributing
+
+Contributions are welcome! Please open an issue or submit a pull request with your improvements.
+
+### Acknowledgements
+
+- [Flask](https://flask.palletsprojects.com/en/latest/)
+- [Next.js](https://nextjs.org/)
+- [NLTK](https://www.nltk.org/)
+- [CORS](https://flask-cors.readthedocs.io/en/latest/)
