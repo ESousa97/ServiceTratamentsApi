@@ -1,4 +1,4 @@
-# Adicione essas linhas no INÍCIO do arquivo config/database.py
+# config/database.py
 
 import sqlite3
 import json
@@ -11,8 +11,84 @@ import redis
 import numpy as np
 import pandas as pd
 from config.settings import config
+import logging
 
-# FUNÇÃO PARA LIMPEZA JSON - ADICIONE ESTA FUNÇÃO
+logger = logging.getLogger(__name__)
+
+# FUNÇÃO PARA LIMPEZA JSON - VERSÃO MELHORADA
+def clean_for_json_improved(obj):
+    """Versão melhorada da limpeza JSON - especialmente para dashboards"""
+    if obj is None:
+        return None
+    elif isinstance(obj, dict):
+        cleaned = {}
+        for k, v in obj.items():
+            try:
+                cleaned[str(k)] = clean_for_json_improved(v)
+            except Exception as e:
+                logger.warning(f"Erro ao limpar chave {k}: {e}")
+                cleaned[str(k)] = str(v)
+        return cleaned
+    elif isinstance(obj, (list, tuple)):
+        cleaned = []
+        for item in obj:
+            try:
+                cleaned.append(clean_for_json_improved(item))
+            except Exception as e:
+                logger.warning(f"Erro ao limpar item da lista: {e}")
+                cleaned.append(str(item))
+        return cleaned
+    elif isinstance(obj, (np.integer, np.int64, np.int32, np.int16, np.int8)):
+        return int(obj)
+    elif isinstance(obj, (np.floating, np.float64, np.float32, np.float16)):
+        val = float(obj)
+        # Trata valores especiais
+        if np.isnan(val):
+            return None
+        elif np.isinf(val):
+            return None
+        return val
+    elif isinstance(obj, np.bool_):
+        return bool(obj)
+    elif isinstance(obj, np.ndarray):
+        try:
+            return obj.tolist()
+        except:
+            return str(obj)
+    elif isinstance(obj, (pd.Timestamp, pd.DatetimeIndex)):
+        try:
+            return obj.isoformat() if hasattr(obj, 'isoformat') else str(obj)
+        except:
+            return str(obj)
+    elif isinstance(obj, datetime):
+        return obj.isoformat()
+    elif hasattr(obj, 'item'):  # numpy scalars
+        try:
+            return obj.item()
+        except:
+            return str(obj)
+    elif hasattr(obj, 'tolist'):  # arrays
+        try:
+            return obj.tolist()
+        except:
+            return str(obj)
+    elif pd.isna(obj):  # pandas NaN values
+        return None
+    elif isinstance(obj, str):
+        # Limita strings muito longas
+        if len(obj) > 10000:
+            return obj[:10000] + "... [truncated]"
+        return obj
+    elif isinstance(obj, (int, float, bool)):
+        return obj
+    else:
+        # Para qualquer outro tipo, converte para string
+        try:
+            return str(obj)
+        except:
+            return "<<unserializable>>"
+
+# FUNÇÃO ORIGINAL PARA BACKUP / OUTRAS SITUAÇÕES
 def clean_for_json(obj):
     """Limpa objeto recursivamente para serialização JSON"""
     if isinstance(obj, dict):
@@ -47,6 +123,7 @@ def clean_for_json(obj):
         return None
     else:
         return obj
+
 
 class DatabaseManager:
     """Gerenciador de banco de dados"""
@@ -178,38 +255,168 @@ class DatabaseManager:
             cursor.execute('SELECT * FROM processing_jobs WHERE id = ?', (job_id,))
             row = cursor.fetchone()
             return dict(row) if row else None
-    
+
+    # SUBSTITUIR PELO MÉTODO MELHORADO save_analysis_improved
     def save_analysis(self, job_id: int, analysis_type: str, results: Dict):
-        """Salva resultado de análise - VERSÃO CORRIGIDA"""
+        """Versão melhorada para salvar análises"""
         with self.get_cursor() as cursor:
-            # ✅ CORREÇÃO: Limpa dados antes de serializar
             try:
-                cleaned_results = clean_for_json(results)
-                json_results = json.dumps(cleaned_results, ensure_ascii=False)
+                # Limpeza especial para dashboards
+                if analysis_type == 'dashboard':
+                    cleaned_results = self._clean_dashboard_data(results)
+                else:
+                    cleaned_results = clean_for_json_improved(results)
+                
+                # Tenta serializar
+                json_results = json.dumps(cleaned_results, ensure_ascii=False, separators=(',', ':'))
+                
+                # Verifica tamanho (limite de 16MB para JSON)
+                if len(json_results.encode('utf-8')) > 16 * 1024 * 1024:
+                    # Se muito grande, cria versão resumida
+                    cleaned_results = self._create_summary_version(analysis_type, results)
+                    json_results = json.dumps(cleaned_results, ensure_ascii=False, separators=(',', ':'))
                 
                 cursor.execute('''
                     INSERT INTO analyses (job_id, analysis_type, results)
                     VALUES (?, ?, ?)
                 ''', (job_id, analysis_type, json_results))
                 
+                logger.info(f"Análise {analysis_type} salva com sucesso para job {job_id}")
+                
             except Exception as e:
-                # Se ainda falhar, salva uma versão simplificada
-                simplified_results = {
+                # Fallback: salva apenas informações essenciais
+                fallback_results = {
                     'error': 'Serialization failed',
                     'original_error': str(e),
                     'analysis_type': analysis_type,
-                    'timestamp': datetime.now().isoformat()
+                    'timestamp': datetime.now().isoformat(),
+                    'summary': self._extract_essential_info(results)
                 }
+                
                 cursor.execute('''
                     INSERT INTO analyses (job_id, analysis_type, results)
                     VALUES (?, ?, ?)
-                ''', (job_id, analysis_type, json.dumps(simplified_results)))
+                ''', (job_id, analysis_type, json.dumps(fallback_results)))
                 
-                # Log do erro para debug
-                import logging
-                logger = logging.getLogger(__name__)
-                logger.error(f"Erro na serialização de análise {analysis_type}: {e}")
-    
+                logger.error(f"Erro na serialização de {analysis_type}, usando fallback: {e}")
+
+    def _clean_dashboard_data(self, dashboard_data: Dict) -> Dict:
+        """Limpeza especial para dados de dashboard"""
+        try:
+            cleaned = {}
+            
+            # Metadata
+            if 'metadata' in dashboard_data:
+                cleaned['metadata'] = clean_for_json_improved(dashboard_data['metadata'])
+            
+            # Summary cards
+            if 'summary' in dashboard_data:
+                cleaned['summary'] = clean_for_json_improved(dashboard_data['summary'])
+            
+            # Charts - requer cuidado especial
+            if 'charts' in dashboard_data:
+                cleaned_charts = []
+                for chart in dashboard_data['charts']:
+                    cleaned_chart = {
+                        'title': chart.get('title', 'Sem título'),
+                        'type': chart.get('type', 'unknown'),
+                        'description': chart.get('description', ''),
+                    }
+                    
+                    # Para chart_json, verifica se já é string ou precisa converter
+                    if 'chart_json' in chart:
+                        chart_json = chart['chart_json']
+                        if isinstance(chart_json, str):
+                            # Já é string JSON, mantém
+                            cleaned_chart['chart_json'] = chart_json
+                        else:
+                            # Precisa converter para string
+                            try:
+                                cleaned_chart['chart_json'] = json.dumps(chart_json)
+                            except:
+                                cleaned_chart['chart_json'] = None
+                                cleaned_chart['error'] = 'Failed to serialize chart'
+                    
+                    # Adiciona estatísticas se existirem
+                    if 'stats' in chart:
+                        cleaned_chart['stats'] = clean_for_json_improved(chart['stats'])
+                    
+                    cleaned_charts.append(cleaned_chart)
+                
+                cleaned['charts'] = cleaned_charts
+            
+            # Data preview
+            if 'data_preview' in dashboard_data:
+                preview = dashboard_data['data_preview']
+                cleaned_preview = {
+                    'columns': preview.get('columns', [])[:50],  # Limita colunas
+                    'total_rows': preview.get('total_rows', 0),
+                    'preview_rows': preview.get('preview_rows', 0)
+                }
+                
+                # Limita dados do preview
+                if 'data' in preview and isinstance(preview['data'], list):
+                    cleaned_preview['data'] = preview['data'][:10]  # Máximo 10 linhas
+                
+                cleaned['data_preview'] = cleaned_preview
+            
+            return cleaned
+            
+        except Exception as e:
+            logger.error(f"Erro na limpeza de dashboard: {e}")
+            return {
+                'error': 'Dashboard cleaning failed',
+                'original_error': str(e),
+                'timestamp': datetime.now().isoformat()
+            }
+
+    def _create_summary_version(self, analysis_type: str, results: Dict) -> Dict:
+        """Cria versão resumida quando dados são muito grandes"""
+        summary = {
+            'analysis_type': analysis_type,
+            'timestamp': datetime.now().isoformat(),
+            'summary': 'Data too large - summary version created'
+        }
+        
+        if analysis_type == 'dashboard':
+            summary.update({
+                'metadata': results.get('metadata', {}),
+                'charts_count': len(results.get('charts', [])),
+                'summary_cards_count': len(results.get('summary', [])),
+                'has_data_preview': 'data_preview' in results
+            })
+        elif analysis_type == 'statistical':
+            summary.update({
+                'basic_stats': results.get('basic_stats', {}),
+                'data_types_count': len(results.get('data_types', {})),
+                'quality_score': results.get('data_quality', {}).get('overall_score', 0)
+            })
+        
+        return summary
+
+    def _extract_essential_info(self, results: Dict) -> Dict:
+        """Extrai informações essenciais de qualquer análise"""
+        essential = {
+            'type': 'summary',
+            'timestamp': datetime.now().isoformat()
+        }
+        
+        # Tenta extrair informações básicas
+        try:
+            if isinstance(results, dict):
+                # Conta elementos principais
+                essential['keys_count'] = len(results.keys())
+                essential['main_keys'] = list(results.keys())[:10]
+                
+                # Extrai valores simples
+                for key, value in results.items():
+                    if isinstance(value, (int, float, str, bool)) and len(str(value)) < 100:
+                        essential[f'simple_{key}'] = value
+        except:
+            pass
+        
+        return essential
+
     def get_analyses(self, job_id: int) -> List[Dict]:
         """Retorna análises de um job"""
         with self.get_cursor() as cursor:
@@ -230,6 +437,7 @@ class DatabaseManager:
                 analyses.append(row_dict)
             
             return analyses
+
 
 class CacheManager:
     """Gerenciador de cache usando Redis"""
@@ -287,6 +495,7 @@ class CacheManager:
             keys_to_remove = [k for k in self.memory_cache.keys() if pattern in k]
             for key in keys_to_remove:
                 del self.memory_cache[key]
+
 
 # Instâncias globais
 db = DatabaseManager()

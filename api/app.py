@@ -359,9 +359,42 @@ def get_job_results(job_id):
         logger.error(f"Erro ao obter resultados: {e}")
         return jsonify({'error': f'Erro interno: {str(e)}'}), 500
 
-@app.route('/dashboard/<int:job_id>', methods=['GET'])
-def get_dashboard_data(job_id):
-    """Retorna dados do dashboard"""
+# Adicione estas rotas ao seu api/app.py
+
+@app.route('/dashboard/<int:job_id>')
+def view_dashboard(job_id):
+    """Exibe dashboard interativo - VERSÃO CORRIGIDA"""
+    try:
+        job = db.get_job(job_id)
+        if not job:
+            return render_template('error.html', message='Job não encontrado'), 404
+        
+        if job['status'] != 'completed':
+            return render_template('processing.html', job=job)
+        
+        # Recupera dados do dashboard
+        analyses = db.get_analyses(job_id)
+        dashboard_data = None
+        
+        for analysis in analyses:
+            if analysis['analysis_type'] == 'dashboard':
+                dashboard_data = analysis['results']
+                break
+        
+        if not dashboard_data:
+            return render_template('error.html', message='Dashboard não encontrado'), 404
+        
+        return render_template('dashboard.html', 
+                             job=job, 
+                             dashboard=dashboard_data)
+        
+    except Exception as e:
+        logger.error(f"Erro ao exibir dashboard: {e}")
+        return render_template('error.html', message=f'Erro interno: {str(e)}'), 500
+
+@app.route('/api/dashboard/<int:job_id>')
+def get_dashboard_api(job_id):
+    """API para obter dados do dashboard - VERSÃO CORRIGIDA"""
     try:
         job = db.get_job(job_id)
         if not job:
@@ -370,7 +403,8 @@ def get_dashboard_data(job_id):
         if job['status'] != 'completed':
             return jsonify({
                 'error': 'Dashboard ainda não está disponível',
-                'status': job['status']
+                'status': job['status'],
+                'progress': job['progress']
             }), 400
         
         # Recupera dados do dashboard
@@ -385,10 +419,21 @@ def get_dashboard_data(job_id):
         if not dashboard_data:
             return jsonify({'error': 'Dados do dashboard não encontrados'}), 404
         
-        return jsonify(dashboard_data)
+        # Garante que os dados estão em formato adequado
+        response_data = {
+            'job_info': {
+                'id': job_id,
+                'filename': job['filename'],
+                'status': job['status'],
+                'created_at': job['created_at']
+            },
+            'dashboard': dashboard_data
+        }
+        
+        return jsonify(response_data)
         
     except Exception as e:
-        logger.error(f"Erro ao obter dashboard: {e}")
+        logger.error(f"Erro na API do dashboard: {e}")
         return jsonify({'error': f'Erro interno: {str(e)}'}), 500
 
 @app.route('/jobs', methods=['GET'])
