@@ -1,3 +1,5 @@
+# Adicione essas linhas no INÍCIO do arquivo config/database.py
+
 import sqlite3
 import json
 import pickle
@@ -6,7 +8,45 @@ from typing import Any, Dict, List, Optional
 from contextlib import contextmanager
 import threading
 import redis
+import numpy as np
+import pandas as pd
 from config.settings import config
+
+# FUNÇÃO PARA LIMPEZA JSON - ADICIONE ESTA FUNÇÃO
+def clean_for_json(obj):
+    """Limpa objeto recursivamente para serialização JSON"""
+    if isinstance(obj, dict):
+        return {k: clean_for_json(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [clean_for_json(item) for item in obj]
+    elif isinstance(obj, tuple):
+        return list(clean_for_json(list(obj)))
+    elif isinstance(obj, (np.integer, np.int64, np.int32, np.int16, np.int8)):
+        return int(obj)
+    elif isinstance(obj, (np.floating, np.float64, np.float32, np.float16)):
+        return float(obj)
+    elif isinstance(obj, np.bool_):
+        return bool(obj)
+    elif isinstance(obj, np.ndarray):
+        return obj.tolist()
+    elif isinstance(obj, (pd.Timestamp, pd.DatetimeIndex)):
+        return obj.isoformat() if hasattr(obj, 'isoformat') else str(obj)
+    elif isinstance(obj, (datetime)):
+        return obj.isoformat()
+    elif hasattr(obj, 'item'):  # numpy scalars
+        try:
+            return obj.item()
+        except:
+            return str(obj)
+    elif hasattr(obj, 'tolist'):  # arrays
+        try:
+            return obj.tolist()
+        except:
+            return str(obj)
+    elif pd.isna(obj):  # pandas NaN values
+        return None
+    else:
+        return obj
 
 class DatabaseManager:
     """Gerenciador de banco de dados"""
@@ -140,12 +180,35 @@ class DatabaseManager:
             return dict(row) if row else None
     
     def save_analysis(self, job_id: int, analysis_type: str, results: Dict):
-        """Salva resultado de análise"""
+        """Salva resultado de análise - VERSÃO CORRIGIDA"""
         with self.get_cursor() as cursor:
-            cursor.execute('''
-                INSERT INTO analyses (job_id, analysis_type, results)
-                VALUES (?, ?, ?)
-            ''', (job_id, analysis_type, json.dumps(results)))
+            # ✅ CORREÇÃO: Limpa dados antes de serializar
+            try:
+                cleaned_results = clean_for_json(results)
+                json_results = json.dumps(cleaned_results, ensure_ascii=False)
+                
+                cursor.execute('''
+                    INSERT INTO analyses (job_id, analysis_type, results)
+                    VALUES (?, ?, ?)
+                ''', (job_id, analysis_type, json_results))
+                
+            except Exception as e:
+                # Se ainda falhar, salva uma versão simplificada
+                simplified_results = {
+                    'error': 'Serialization failed',
+                    'original_error': str(e),
+                    'analysis_type': analysis_type,
+                    'timestamp': datetime.now().isoformat()
+                }
+                cursor.execute('''
+                    INSERT INTO analyses (job_id, analysis_type, results)
+                    VALUES (?, ?, ?)
+                ''', (job_id, analysis_type, json.dumps(simplified_results)))
+                
+                # Log do erro para debug
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.error(f"Erro na serialização de análise {analysis_type}: {e}")
     
     def get_analyses(self, job_id: int) -> List[Dict]:
         """Retorna análises de um job"""
@@ -154,7 +217,19 @@ class DatabaseManager:
                 SELECT analysis_type, results, created_at 
                 FROM analyses WHERE job_id = ?
             ''', (job_id,))
-            return [dict(row) for row in cursor.fetchall()]
+            
+            analyses = []
+            for row in cursor.fetchall():
+                row_dict = dict(row)
+                # Tenta fazer parse do JSON
+                try:
+                    row_dict['results'] = json.loads(row_dict['results'])
+                except:
+                    # Se falhar, mantém como string
+                    pass
+                analyses.append(row_dict)
+            
+            return analyses
 
 class CacheManager:
     """Gerenciador de cache usando Redis"""
