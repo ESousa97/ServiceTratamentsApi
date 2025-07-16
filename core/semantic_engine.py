@@ -6,18 +6,32 @@ from sklearn.cluster import DBSCAN
 import difflib
 import re
 import logging
-from models.embeddings import embedding_engine, TextPreprocessor
+from models.embeddings import EmbeddingEngine, TextPreprocessor
 from core.memory_manager import memory_manager
 from config.settings import config
 
 logger = logging.getLogger(__name__)
 
+def get_embedding_engine():
+    """Obtém a instância global do embedding engine ou cria uma nova"""
+    try:
+        import builtins
+        engine = getattr(builtins, 'global_embedding_engine', None)
+        if engine is not None:
+            return engine
+    except:
+        pass
+    
+    # Fallback: cria nova instância
+    return EmbeddingEngine()
+
 class SemanticEngine:
     """Engine para similaridade semântica e correção ortográfica"""
     
-    def __init__(self, similarity_threshold: float = None):
+    def __init__(self, similarity_threshold: float = None, embedding_engine: EmbeddingEngine = None):
         self.similarity_threshold = similarity_threshold or config.SIMILARITY_THRESHOLD
         self.text_preprocessor = TextPreprocessor()
+        self.embedding_engine = embedding_engine or get_embedding_engine()
         
     def calculate_similarity_matrix(self, texts: List[str]) -> np.ndarray:
         """Calcula matriz de similaridade semântica"""
@@ -28,7 +42,7 @@ class SemanticEngine:
         cleaned_texts = [self.text_preprocessor.clean_text(text) for text in texts]
         
         # Gera embeddings
-        embeddings = embedding_engine.generate_embeddings_batch(cleaned_texts)
+        embeddings = self.embedding_engine.generate_embeddings_batch(cleaned_texts)
         embeddings_array = np.array(embeddings)
         
         # Calcula similaridade de cosseno
@@ -71,7 +85,7 @@ class SemanticEngine:
         eps = eps or (1 - self.similarity_threshold)
         
         # Gera embeddings
-        embeddings = embedding_engine.generate_embeddings_batch(texts)
+        embeddings = self.embedding_engine.generate_embeddings_batch(texts)
         embeddings_array = np.array(embeddings)
         
         # Clustering com DBSCAN
@@ -231,8 +245,8 @@ class SemanticEngine:
 class SemanticAnalyzer:
     """Analisador semântico avançado para datasets"""
     
-    def __init__(self):
-        self.semantic_engine = SemanticEngine()
+    def __init__(self, embedding_engine: EmbeddingEngine = None):
+        self.semantic_engine = SemanticEngine(embedding_engine=embedding_engine)
     
     @memory_manager.memory_limiter
     def analyze_column_semantics(self, df: pd.DataFrame, 
@@ -379,9 +393,9 @@ class SemanticAnalyzer:
 class SemanticDataProcessor:
     """Processador de dados com capacidades semânticas"""
     
-    def __init__(self):
-        self.semantic_engine = SemanticEngine()
-        self.analyzer = SemanticAnalyzer()
+    def __init__(self, embedding_engine: EmbeddingEngine = None):
+        self.semantic_engine = SemanticEngine(embedding_engine=embedding_engine)
+        self.analyzer = SemanticAnalyzer(embedding_engine=embedding_engine)
     
     def process_dataframe_semantics(self, df: pd.DataFrame, 
                                   text_columns: List[str] = None) -> Dict[str, any]:
@@ -472,8 +486,8 @@ class SemanticDataProcessor:
             return 0.0
         
         # Gera embeddings médios para cada coluna
-        embeddings1 = embedding_engine.generate_embeddings_batch(sample1)
-        embeddings2 = embedding_engine.generate_embeddings_batch(sample2)
+        embeddings1 = self.semantic_engine.embedding_engine.generate_embeddings_batch(sample1)
+        embeddings2 = self.semantic_engine.embedding_engine.generate_embeddings_batch(sample2)
         
         avg_embedding1 = np.mean(embeddings1, axis=0)
         avg_embedding2 = np.mean(embeddings2, axis=0)
@@ -510,7 +524,38 @@ class SemanticDataProcessor:
         
         return recommendations
 
-# Instância global
-semantic_engine = SemanticEngine()
-semantic_analyzer = SemanticAnalyzer()
-semantic_processor = SemanticDataProcessor()
+# Instância global que será configurada pelo main.py
+semantic_engine = None
+semantic_analyzer = None
+semantic_processor = None
+
+def initialize_semantic_components(embedding_engine: EmbeddingEngine = None):
+    """Inicializa componentes semânticos com a engine de embeddings"""
+    global semantic_engine, semantic_analyzer, semantic_processor
+    
+    engine = embedding_engine or get_embedding_engine()
+    semantic_engine = SemanticEngine(embedding_engine=engine)
+    semantic_analyzer = SemanticAnalyzer(embedding_engine=engine)
+    semantic_processor = SemanticDataProcessor(embedding_engine=engine)
+
+def get_semantic_processor():
+    """Obtém o processador semântico, inicializando se necessário"""
+    global semantic_processor
+    if semantic_processor is None:
+        initialize_semantic_components()
+    return semantic_processor
+
+# Para compatibilidade com imports existentes
+def get_semantic_engine():
+    """Obtém a engine semântica, inicializando se necessário"""
+    global semantic_engine
+    if semantic_engine is None:
+        initialize_semantic_components()
+    return semantic_engine
+
+def get_semantic_analyzer():
+    """Obtém o analisador semântico, inicializando se necessário"""
+    global semantic_analyzer
+    if semantic_analyzer is None:
+        initialize_semantic_components()
+    return semantic_analyzer

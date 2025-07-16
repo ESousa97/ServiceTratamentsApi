@@ -6,6 +6,8 @@ from sentence_transformers import SentenceTransformer
 import torch
 from transformers import AutoTokenizer, AutoModel
 import logging
+
+# Importações locais - SEM instâncias globais aqui
 from core.memory_manager import memory_manager
 from config.settings import config
 from config.database import db, cache
@@ -20,6 +22,7 @@ class EmbeddingEngine:
         self.device = device or ('cuda' if torch.cuda.is_available() else 'cpu')
         self.model = None
         self.tokenizer = None
+        self.model_type = None
         self._load_model()
         
     def _load_model(self):
@@ -32,7 +35,8 @@ class EmbeddingEngine:
                 self.model = SentenceTransformer(self.model_name, device=self.device)
                 self.model_type = 'sentence_transformer'
                 logger.info("Modelo carregado com sentence-transformers")
-            except:
+            except Exception as e:
+                logger.warning(f"Falha no sentence-transformers, tentando transformers puro: {e}")
                 # Fallback para transformers
                 self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
                 self.model = AutoModel.from_pretrained(self.model_name)
@@ -76,7 +80,7 @@ class EmbeddingEngine:
             with db.get_cursor() as cursor:
                 cursor.execute('''
                     SELECT embedding FROM embeddings_cache 
-                    WHERE text_hash = ? AND model_name = ?
+                    WHERE text_hash = %s AND model_name = %s
                 ''', (text_hash, self.model_name))
                 
                 row = cursor.fetchone()
@@ -103,7 +107,7 @@ class EmbeddingEngine:
                 cursor.execute('''
                     INSERT OR REPLACE INTO embeddings_cache 
                     (text_hash, embedding, model_name)
-                    VALUES (?, ?, ?)
+                    VALUES (%s, %s, %s)
                 ''', (text_hash, pickle.dumps(embedding), self.model_name))
         except Exception as e:
             logger.warning(f"Erro ao armazenar embedding no cache: {e}")
@@ -298,5 +302,5 @@ class TextPreprocessor:
         
         return truncated
 
-# Instância global
-embedding_engine = EmbeddingEngine()
+# REMOVIDO: Não instancie nada aqui para evitar imports circulares!
+# A instância será criada onde for necessária

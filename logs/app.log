@@ -1,0 +1,12 @@
+2025-07-15 21:51:52,626 - __main__ - INFO - Sistema iniciando...
+2025-07-15 21:51:57,091 - models.embeddings - INFO - Carregando modelo: sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
+2025-07-15 21:51:57,092 - sentence_transformers.SentenceTransformer - INFO - Load pretrained SentenceTransformer: sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
+2025-07-15 21:52:59,898 - models.embeddings - INFO - Modelo carregado com sentence-transformers
+2025-07-15 21:52:59,940 - __main__ - ERROR - Erro fatal: unterminated string literal (detected at line 305) (neural_network.py, line 305)
+2025-07-15 21:52:59,940 - core.memory_manager - INFO - Monitoramento de memória parado
+2025-07-15 21:59:48,280 - __main__ - INFO - Sistema iniciando...
+2025-07-15 21:59:52,468 - __main__ - ERROR - Erro fatal: cannot import name 'embedding_engine' from 'models.embeddings' (C:\Users\sousa\Projects\ServiceTratamentsApi\models\embeddings.py)
+2025-07-15 21:59:52,468 - core.memory_manager - INFO - Monitoramento de memória parado
+2025-07-15 22:12:36,399 - __main__ - INFO - Sistema iniciando...
+2025-07-15 22:12:40,583 - __main__ - ERROR - Erro fatal: cannot import name 'embedding_engine' from 'models.embeddings' (C:\Users\sousa\Projects\ServiceTratamentsApi\models\embeddings.py)
+2025-07-15 22:12:40,583 - core.memory_manager - INFO - Monitoramento de memória parado

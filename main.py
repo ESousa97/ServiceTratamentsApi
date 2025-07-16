@@ -29,19 +29,24 @@ def check_dependencies():
         'flask', 'pandas', 'numpy', 'scikit-learn', 
         'plotly', 'sentence-transformers', 'torch'
     ]
-    
+    import_map = {
+        'scikit-learn': 'sklearn',
+        'sentence-transformers': 'sentence_transformers',
+    }
+
     missing_packages = []
     for package in required_packages:
+        import_name = import_map.get(package, package.replace('-', '_'))
         try:
-            __import__(package.replace('-', '_'))
+            __import__(import_name)
         except ImportError:
             missing_packages.append(package)
-    
+
     if missing_packages:
         print(f"❌ Pacotes ausentes: {', '.join(missing_packages)}")
         print("Execute: pip install -r requirements.txt")
         return False
-    
+
     print("✅ Todas as dependências estão instaladas")
     return True
 
@@ -51,47 +56,50 @@ def create_directories():
         'uploads', 'temp', 'outputs', 'logs', 
         'models/cache', 'static/css', 'static/js'
     ]
-    
+
     for directory in directories:
         Path(directory).mkdir(parents=True, exist_ok=True)
-    
+
     print("✅ Diretórios criados/verificados")
 
 def initialize_models():
     """Inicializa modelos de ML"""
     try:
-        from models.embeddings import embedding_engine
-        from core.semantic_engine import semantic_engine
+        # Importa a classe EmbeddingEngine (não uma instância!)
+        from models.embeddings import EmbeddingEngine
         
-        # Testa carregamento dos modelos
+        # Cria uma instância local
+        embedding_engine = EmbeddingEngine()
         model_info = embedding_engine.get_model_info()
+        
         print(f"✅ Modelo de embeddings carregado: {model_info['model_name']}")
         print(f"   - Dimensão: {model_info['embedding_dimension']}")
         print(f"   - Device: {model_info['device']}")
         
-        return True
+        return embedding_engine
+        
     except Exception as e:
         print(f"❌ Erro ao carregar modelos: {e}")
-        return False
+        return None
 
 def run_tests():
     """Executa testes básicos do sistema"""
     try:
         from config.database import db
         from core.memory_manager import memory_manager
-        
+
         # Teste do banco de dados
         test_job_id = db.create_job("test.csv", 1024, 100, 10)
         db.update_job_status(test_job_id, 'completed')
         job_info = db.get_job(test_job_id)
         assert job_info is not None
         print("✅ Banco de dados funcionando")
-        
+
         # Teste de memória
         stats = memory_manager.get_memory_stats()
         assert stats.total_gb > 0
         print(f"✅ Monitoramento de memória: {stats.process_memory_gb:.2f}GB em uso")
-        
+
         return True
     except Exception as e:
         print(f"❌ Erro nos testes: {e}")
@@ -114,7 +122,7 @@ def print_banner():
     """
     print(banner)
 
-def print_usage_info():
+def print_usage_info(embedding_engine=None):
     """Exibe informações de uso"""
     usage_info = """
 🚀 COMO USAR:
@@ -143,17 +151,14 @@ def print_usage_info():
   • GET /dashboard/<job_id> - Dashboard interativo
   • GET /health - Health check do sistema
     """
-    
+
     try:
         from config.settings import config
-        from models.embeddings import embedding_engine
-        
-        model_info = embedding_engine.get_model_info()
-        
+        model_name = embedding_engine.get_model_info()['model_name'] if embedding_engine else "Carregando..."
         print(usage_info.format(
             max_memory=config.MAX_MEMORY_GB,
             max_file_size=config.MAX_FILE_SIZE_MB,
-            model_name=model_info['model_name']
+            model_name=model_name
         ))
     except:
         print(usage_info.format(
@@ -165,37 +170,52 @@ def print_usage_info():
 def main():
     """Função principal"""
     print_banner()
-    
+
     print("🔄 Inicializando sistema...")
-    
+
     # 1. Verificar dependências
     if not check_dependencies():
         sys.exit(1)
-    
+
     # 2. Criar diretórios
     create_directories()
-    
+
     # 3. Configurar logging
     setup_logging()
     logger = logging.getLogger(__name__)
     logger.info("Sistema iniciando...")
-    
+
     # 4. Inicializar modelos
-    if not initialize_models():
+    embedding_engine = initialize_models()
+    if not embedding_engine:
         print("⚠️  Modelos não puderam ser carregados, mas a aplicação continuará")
-    
+
     # 5. Executar testes
     if not run_tests():
         print("⚠️  Alguns testes falharam, mas a aplicação continuará")
-    
+
     # 6. Exibir informações de uso
-    print_usage_info()
-    
-    # 7. Iniciar servidor
+    print_usage_info(embedding_engine)
+
+    # 7. Configurar instância global para o app
+    if embedding_engine:
+        # Armazena a instância em um local acessível globalmente
+        import builtins
+        builtins.global_embedding_engine = embedding_engine
+        
+        # Inicializa componentes semânticos
+        try:
+            from core.semantic_engine import initialize_semantic_components
+            initialize_semantic_components(embedding_engine)
+            print("✅ Componentes semânticos inicializados")
+        except Exception as e:
+            print(f"⚠️  Erro ao inicializar componentes semânticos: {e}")
+
+    # 8. Iniciar servidor
     try:
         print("\n🌟 Sistema pronto! Iniciando servidor...")
         print("   Pressione Ctrl+C para parar\n")
-        
+
         # Importa e inicia a aplicação Flask
         from api.app import app
         app.run(
@@ -204,7 +224,7 @@ def main():
             debug=False,  # Produção
             threaded=True
         )
-        
+
     except KeyboardInterrupt:
         print("\n\n👋 Encerrando sistema...")
         logger.info("Sistema encerrado pelo usuário")

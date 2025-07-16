@@ -3,20 +3,33 @@ import numpy as np
 from typing import Dict, List, Any, Optional, Tuple
 import logging
 from core.memory_manager import memory_manager
-from models.embeddings import embedding_engine
+from models.embeddings import EmbeddingEngine
 from models.neural_network import TextClassifier, AnomalyDetector
 from models.similarity_engine import SimilarityEngine
-from core.semantic_engine import semantic_processor
 
 logger = logging.getLogger(__name__)
+
+def get_embedding_engine():
+    """Obtém a instância global do embedding engine ou cria uma nova"""
+    try:
+        import builtins
+        engine = getattr(builtins, 'global_embedding_engine', None)
+        if engine is not None:
+            return engine
+    except:
+        pass
+    
+    # Fallback: cria nova instância
+    return EmbeddingEngine()
 
 class NeuralProcessor:
     """Coordenador de processamento neural dos dados"""
     
-    def __init__(self):
-        self.text_classifier = TextClassifier()
+    def __init__(self, embedding_engine: EmbeddingEngine = None):
+        self.embedding_engine = embedding_engine or get_embedding_engine()
+        self.text_classifier = TextClassifier(self.embedding_engine)
         self.anomaly_detector = AnomalyDetector()
-        self.similarity_engine = SimilarityEngine()
+        self.similarity_engine = SimilarityEngine(embedding_engine=self.embedding_engine)
         
     @memory_manager.memory_limiter
     def process_dataset_neural(self, df: pd.DataFrame) -> Dict[str, Any]:
@@ -221,7 +234,7 @@ class NeuralProcessor:
             sample_texts = texts[:100] if len(texts) > 100 else texts
             
             # Gera embeddings
-            embeddings = embedding_engine.generate_embeddings_batch(sample_texts)
+            embeddings = self.embedding_engine.generate_embeddings_batch(sample_texts)
             embeddings_array = np.array(embeddings)
             
             # Calcula diversidade semântica
@@ -256,7 +269,7 @@ class NeuralProcessor:
                 
                 if len(values) > 10:
                     # Usa embeddings para detectar inconsistências semânticas
-                    embeddings = embedding_engine.generate_embeddings_batch(values[:50])
+                    embeddings = self.embedding_engine.generate_embeddings_batch(values[:50])
                     
                     # Calcula variabilidade semântica
                     embeddings_array = np.array(embeddings)
@@ -328,5 +341,13 @@ class NeuralProcessor:
         
         return insights
 
-# Instância global
-neural_processor = NeuralProcessor()
+# Instância global que será configurada se necessário
+neural_processor = None
+
+def get_neural_processor(embedding_engine: EmbeddingEngine = None):
+    """Obtém o processador neural, inicializando se necessário"""
+    global neural_processor
+    if neural_processor is None:
+        engine = embedding_engine or get_embedding_engine()
+        neural_processor = NeuralProcessor(embedding_engine=engine)
+    return neural_processor

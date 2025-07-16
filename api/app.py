@@ -14,7 +14,7 @@ from config.database import db, cache
 from core.file_handler import CSVProcessor, FileValidator
 from core.memory_manager import memory_manager
 from core.semantic_engine import semantic_processor
-from models.embeddings import embedding_engine
+# REMOVIDO: from models.embeddings import embedding_engine
 from analysis.statistical_analyzer import statistical_analyzer
 from analysis.pattern_detector import pattern_detector
 from visualization.dashboard_generator import dashboard_generator
@@ -25,6 +25,16 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
+
+def get_embedding_engine():
+    """Obtém a instância global do embedding engine"""
+    try:
+        import builtins
+        return getattr(builtins, 'global_embedding_engine', None)
+    except:
+        # Fallback: cria nova instância se necessário
+        from models.embeddings import EmbeddingEngine
+        return EmbeddingEngine()
 
 class IntelligentCSVProcessor:
     """Processador principal da aplicação"""
@@ -130,10 +140,14 @@ memory_manager.start_monitoring()
 @app.route('/health', methods=['GET'])
 def health_check():
     """Endpoint de health check"""
+    embedding_engine = get_embedding_engine()
+    model_info = embedding_engine.get_model_info() if embedding_engine else {'model_name': 'Não carregado'}
+    
     return jsonify({
         'status': 'healthy',
         'timestamp': datetime.now().isoformat(),
         'memory_usage_gb': memory_manager.get_memory_stats().process_memory_gb,
+        'embedding_model': model_info.get('model_name', 'Não disponível'),
         'config': {
             'max_memory_gb': config.MAX_MEMORY_GB,
             'max_file_size_mb': config.MAX_FILE_SIZE_MB

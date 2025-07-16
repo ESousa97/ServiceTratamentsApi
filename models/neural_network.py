@@ -1,45 +1,44 @@
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 import numpy as np
 from typing import List, Dict, Any, Tuple, Optional
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans
 import logging
 import re
-from models.embeddings import embedding_engine
+from models.embeddings import EmbeddingEngine
 
 logger = logging.getLogger(__name__)
 
 class TextClassifier:
     """Classificador de texto usando redes neurais"""
-    
-    def __init__(self):
+    def __init__(self, embedding_engine: Optional[EmbeddingEngine] = None):
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.scaler = StandardScaler()
-        
+        self.embedding_engine = embedding_engine or EmbeddingEngine()
+
     def classify_text_categories(self, texts: List[str]) -> Dict[str, Any]:
         """Classifica textos em categorias automáticas"""
         try:
             if not texts:
                 return {'categories': [], 'confidence': 0}
-            
+
             # Gera embeddings
-            embeddings = embedding_engine.generate_embeddings_batch(texts)
+            embeddings = self.embedding_engine.generate_embeddings_batch(texts)
             embeddings_array = np.array(embeddings)
-            
+
             # Clustering para identificar categorias
             n_clusters = min(10, max(2, len(texts) // 5))
             kmeans = KMeans(n_clusters=n_clusters, random_state=42, n_init=10)
             cluster_labels = kmeans.fit_predict(embeddings_array)
-            
+
             # Analisa categorias encontradas
             categories = {}
             for i, label in enumerate(cluster_labels):
                 if label not in categories:
                     categories[label] = []
                 categories[label].append(texts[i])
-            
+
             # Gera nomes para categorias baseado no conteúdo
             category_names = {}
             for label, category_texts in categories.items():
@@ -49,13 +48,12 @@ class TextClassifier:
                     'count': len(category_texts),
                     'percentage': (len(category_texts) / len(texts)) * 100
                 }
-            
+
             return {
                 'categories': category_names,
                 'total_categories': len(categories),
                 'silhouette_score': self._calculate_silhouette_score(embeddings_array, cluster_labels)
             }
-            
         except Exception as e:
             logger.error(f"Erro na classificação de categorias: {e}")
             return {'categories': {}, 'error': str(e)}
@@ -299,28 +297,28 @@ class TextClassifier:
     def _detect_format_patterns(self, texts: List[str]) -> List[Dict[str, Any]]:
         """Detecta padrões de formato em textos"""
         patterns = []
-        
+
         # Padrões comuns
         format_checks = {
-            'email': r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,},
-            'phone': r'^\+?[\d\s\-\(\)]{10,},
-            'cpf': r'^\d{3}\.\d{3}\.\d{3}-\d{2},
-            'date': r'^\d{1,2}[/\-]\d{1,2}[/\-]\d{4},
-            'number': r'^\d+,
-            'alphanumeric': r'^[a-zA-Z0-9]+
+            'email': r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+            'phone': r'^\+?[\d\s\-\(\)]{10,}$',
+            'cpf': r'^\d{3}\.\d{3}\.\d{3}-\d{2}$',
+            'date': r'^\d{1,2}[/\-]\d{1,2}[/\-]\d{4}$',
+            'number': r'^\d+$',
+            'alphanumeric': r'^[a-zA-Z0-9]+$'
         }
-        
+
         for pattern_name, regex in format_checks.items():
             matches = sum(1 for text in texts if re.match(regex, text.strip()))
             match_percentage = (matches / len(texts)) * 100
-            
+
             if match_percentage > 70:  # Threshold para considerar padrão
                 patterns.append({
                     'type': f'format_{pattern_name}',
                     'description': f'{match_percentage:.0f}% dos textos seguem formato {pattern_name}',
                     'confidence': min(0.95, match_percentage / 100)
                 })
-        
+
         return patterns
     
     def _detect_vocabulary_pattern(self, texts: List[str]) -> Optional[Dict[str, Any]]:
