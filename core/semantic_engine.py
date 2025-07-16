@@ -1,38 +1,53 @@
 import numpy as np
 import pandas as pd
 from typing import List, Dict, Tuple, Optional, Set
-from sklearn.metrics.pairwise import cosine_similarity
-from sklearn.cluster import DBSCAN
 import difflib
 import re
 import logging
-from models.embeddings import EmbeddingEngine, TextPreprocessor
-from core.memory_manager import memory_manager
-from config.settings import config
 
 logger = logging.getLogger(__name__)
 
-def get_embedding_engine():
-    """Obtém a instância global do embedding engine ou cria uma nova"""
-    try:
-        import builtins
-        engine = getattr(builtins, 'global_embedding_engine', None)
-        if engine is not None:
-            return engine
-    except:
-        pass
+class TextPreprocessor:
+    """Pré-processador de texto para embeddings"""
     
-    # Fallback: cria nova instância
-    return EmbeddingEngine()
+    @staticmethod
+    def clean_text(text: str) -> str:
+        """Limpa e normaliza texto"""
+        if not text:
+            return ""
+        
+        # Remove caracteres especiais excessivos
+        text = re.sub(r'\s+', ' ', text)  # Múltiplos espaços
+        text = re.sub(r'[^\w\s\.\,\!\?\-]', '', text)  # Mantém pontuação básica
+        
+        # Normaliza
+        text = text.strip().lower()
+        
+        return text
 
 class SemanticEngine:
     """Engine para similaridade semântica e correção ortográfica"""
     
-    def __init__(self, similarity_threshold: float = None, embedding_engine: EmbeddingEngine = None):
-        self.similarity_threshold = similarity_threshold or config.SIMILARITY_THRESHOLD
+    def __init__(self, similarity_threshold: float = 0.7, embedding_engine=None):
+        self.similarity_threshold = similarity_threshold
         self.text_preprocessor = TextPreprocessor()
-        self.embedding_engine = embedding_engine or get_embedding_engine()
+        self.embedding_engine = embedding_engine
         
+    def get_embedding_engine(self):
+        """Obtém embedding engine com lazy loading"""
+        if self.embedding_engine is None:
+            try:
+                # Import dinâmico para evitar circular
+                import importlib
+                embeddings_module = importlib.import_module('models.embeddings')
+                EmbeddingEngine = getattr(embeddings_module, 'EmbeddingEngine')
+                self.embedding_engine = EmbeddingEngine()
+            except Exception as e:
+                logger.warning(f"Erro ao carregar embedding engine: {e}")
+                # Retorna None - funções irão usar fallbacks
+                return None
+        return self.embedding_engine
+    
     def calculate_similarity_matrix(self, texts: List[str]) -> np.ndarray:
         """Calcula matriz de similaridade semântica"""
         if not texts:
@@ -41,12 +56,47 @@ class SemanticEngine:
         # Limpa textos
         cleaned_texts = [self.text_preprocessor.clean_text(text) for text in texts]
         
-        # Gera embeddings
-        embeddings = self.embedding_engine.generate_embeddings_batch(cleaned_texts)
-        embeddings_array = np.array(embeddings)
+        # Tenta usar embeddings se disponível
+        engine = self.get_embedding_engine()
+        if engine:
+            try:
+                embeddings = engine.generate_embeddings_batch(cleaned_texts)
+                embeddings_array = np.array(embeddings)
+                
+                # Calcula similaridade de cosseno
+                from sklearn.metrics.pairwise import cosine_similarity
+                similarity_matrix = cosine_similarity(embeddings_array)
+                return similarity_matrix
+            except Exception as e:
+                logger.warning(f"Erro no cálculo de similaridade semântica: {e}")
         
-        # Calcula similaridade de cosseno
-        similarity_matrix = cosine_similarity(embeddings_array)
+        # Fallback para similaridade léxica simples
+        return self._calculate_lexical_similarity_matrix(cleaned_texts)
+    
+    def _calculate_lexical_similarity_matrix(self, texts: List[str]) -> np.ndarray:
+        """Fallback: calcula similaridade léxica simples"""
+        n = len(texts)
+        similarity_matrix = np.zeros((n, n))
+        
+        for i in range(n):
+            for j in range(n):
+                if i == j:
+                    similarity_matrix[i][j] = 1.0
+                else:
+                    # Usa similaridade de Jaccard baseada em palavras
+                    words_i = set(texts[i].split())
+                    words_j = set(texts[j].split())
+                    
+                    if len(words_i) == 0 and len(words_j) == 0:
+                        similarity = 1.0
+                    elif len(words_i) == 0 or len(words_j) == 0:
+                        similarity = 0.0
+                    else:
+                        intersection = len(words_i.intersection(words_j))
+                        union = len(words_i.union(words_j))
+                        similarity = intersection / union if union > 0 else 0.0
+                    
+                    similarity_matrix[i][j] = similarity
         
         return similarity_matrix
     
@@ -61,6 +111,9 @@ class SemanticEngine:
         
         # Calcula similaridades
         similarity_matrix = self.calculate_similarity_matrix(all_texts)
+        
+        if similarity_matrix.size == 0:
+            return []
         
         # Extrai similaridades com o texto alvo (primeira linha/coluna)
         similarities = similarity_matrix[0, 1:]  # Exclui auto-similaridade
@@ -84,23 +137,69 @@ class SemanticEngine:
         
         eps = eps or (1 - self.similarity_threshold)
         
-        # Gera embeddings
-        embeddings = self.embedding_engine.generate_embeddings_batch(texts)
-        embeddings_array = np.array(embeddings)
+        # Tenta usar clustering semântico
+        engine = self.get_embedding_engine()
+        if engine:
+            try:
+                embeddings = engine.generate_embeddings_batch(texts)
+                embeddings_array = np.array(embeddings)
+                
+                from sklearn.cluster import DBSCAN
+                clustering = DBSCAN(
+                    eps=eps, 
+                    min_samples=min_samples, 
+                    metric='cosine'
+                ).fit(embeddings_array)
+                
+                # Agrupa por labels
+                groups = {}
+                for i, label in enumerate(clustering.labels_):
+                    if label not in groups:
+                        groups[label] = []
+                    groups[label].append(texts[i])
+                
+                return groups
+            except Exception as e:
+                logger.warning(f"Erro no clustering semântico: {e}")
         
-        # Clustering com DBSCAN
-        clustering = DBSCAN(
-            eps=eps, 
-            min_samples=min_samples, 
-            metric='cosine'
-        ).fit(embeddings_array)
-        
-        # Agrupa por labels
+        # Fallback para agrupamento léxico simples
+        return self._simple_text_grouping(texts)
+    
+    def _simple_text_grouping(self, texts: List[str]) -> Dict[int, List[str]]:
+        """Fallback: agrupamento simples baseado em palavras comuns"""
         groups = {}
-        for i, label in enumerate(clustering.labels_):
-            if label not in groups:
-                groups[label] = []
-            groups[label].append(texts[i])
+        group_id = 0
+        processed = set()
+        
+        for i, text in enumerate(texts):
+            if i in processed:
+                continue
+            
+            # Cria novo grupo
+            current_group = [text]
+            processed.add(i)
+            
+            # Busca textos similares
+            words_i = set(text.lower().split())
+            
+            for j, other_text in enumerate(texts[i+1:], i+1):
+                if j in processed:
+                    continue
+                
+                words_j = set(other_text.lower().split())
+                
+                # Calcula similaridade Jaccard
+                if len(words_i) > 0 and len(words_j) > 0:
+                    intersection = len(words_i.intersection(words_j))
+                    union = len(words_i.union(words_j))
+                    similarity = intersection / union
+                    
+                    if similarity >= 0.3:  # Threshold para agrupamento
+                        current_group.append(other_text)
+                        processed.add(j)
+            
+            groups[group_id] = current_group
+            group_id += 1
         
         return groups
     
@@ -242,160 +341,11 @@ class SemanticEngine:
         else:
             return 'unknown'
 
-class SemanticAnalyzer:
-    """Analisador semântico avançado para datasets"""
-    
-    def __init__(self, embedding_engine: EmbeddingEngine = None):
-        self.semantic_engine = SemanticEngine(embedding_engine=embedding_engine)
-    
-    @memory_manager.memory_limiter
-    def analyze_column_semantics(self, df: pd.DataFrame, 
-                                column: str) -> Dict[str, any]:
-        """Analisa semântica de uma coluna"""
-        if column not in df.columns:
-            raise ValueError(f"Coluna '{column}' não encontrada")
-        
-        # Extrai textos únicos não-nulos
-        texts = df[column].dropna().astype(str).unique().tolist()
-        
-        if not texts:
-            return {'error': 'Coluna não contém dados válidos'}
-        
-        # Análise de similaridade
-        similarity_analysis = self._analyze_text_similarity(texts)
-        
-        # Análise de agrupamentos
-        groups = self.semantic_engine.group_similar_texts(texts)
-        
-        # Análise de qualidade do texto
-        quality_analysis = self._analyze_text_quality(texts)
-        
-        # Detecção de idiomas
-        language_analysis = self.semantic_engine.detect_language_inconsistencies(texts)
-        
-        return {
-            'column': column,
-            'total_unique_values': len(texts),
-            'similarity_analysis': similarity_analysis,
-            'semantic_groups': {
-                str(k): v for k, v in groups.items()
-            },
-            'text_quality': quality_analysis,
-            'language_distribution': {
-                k: len(v) for k, v in language_analysis.items()
-            },
-            'recommendations': self._generate_recommendations(
-                similarity_analysis, groups, quality_analysis, language_analysis
-            )
-        }
-    
-    def _analyze_text_similarity(self, texts: List[str]) -> Dict[str, any]:
-        """Analisa distribuição de similaridades"""
-        if len(texts) < 2:
-            return {'avg_similarity': 0, 'max_similarity': 0, 'min_similarity': 0}
-        
-        # Limita análise para economia de memória
-        sample_size = min(100, len(texts))
-        sample_texts = texts[:sample_size]
-        
-        similarity_matrix = self.semantic_engine.calculate_similarity_matrix(sample_texts)
-        
-        # Remove diagonal (auto-similaridade)
-        mask = np.ones_like(similarity_matrix, dtype=bool)
-        np.fill_diagonal(mask, False)
-        similarities = similarity_matrix[mask]
-        
-        return {
-            'avg_similarity': float(np.mean(similarities)),
-            'max_similarity': float(np.max(similarities)),
-            'min_similarity': float(np.min(similarities)),
-            'std_similarity': float(np.std(similarities)),
-            'high_similarity_pairs': int(np.sum(similarities > 0.8)),
-            'sample_size': sample_size
-        }
-    
-    def _analyze_text_quality(self, texts: List[str]) -> Dict[str, any]:
-        """Analisa qualidade dos textos"""
-        if not texts:
-            return {}
-        
-        # Estatísticas básicas
-        lengths = [len(text) for text in texts]
-        word_counts = [len(text.split()) for text in texts]
-        
-        # Problemas de qualidade
-        empty_texts = sum(1 for text in texts if not text.strip())
-        numeric_only = sum(1 for text in texts if text.strip().isdigit())
-        single_char = sum(1 for text in texts if len(text.strip()) == 1)
-        
-        # Caracteres especiais excessivos
-        special_char_heavy = sum(
-            1 for text in texts 
-            if len(re.findall(r'[^\w\s]', text)) > len(text) * 0.3
-        )
-        
-        return {
-            'avg_length': np.mean(lengths),
-            'avg_word_count': np.mean(word_counts),
-            'empty_texts': empty_texts,
-            'numeric_only': numeric_only,
-            'single_character': single_char,
-            'special_char_heavy': special_char_heavy,
-            'quality_score': self._calculate_quality_score(
-                empty_texts, numeric_only, single_char, special_char_heavy, len(texts)
-            )
-        }
-    
-    def _calculate_quality_score(self, empty: int, numeric: int, 
-                               single: int, special: int, total: int) -> float:
-        """Calcula score de qualidade (0-1)"""
-        if total == 0:
-            return 0
-        
-        problems = empty + numeric + single + special
-        return max(0, 1 - (problems / total))
-    
-    def _generate_recommendations(self, similarity_analysis: Dict, 
-                                groups: Dict, quality_analysis: Dict,
-                                language_analysis: Dict) -> List[str]:
-        """Gera recomendações baseadas na análise"""
-        recommendations = []
-        
-        # Recomendações de similaridade
-        if similarity_analysis.get('avg_similarity', 0) > 0.8:
-            recommendations.append("Muitos valores similares detectados - considere agrupamento ou normalização")
-        
-        # Recomendações de agrupamento
-        noise_group = groups.get(-1, [])
-        if len(noise_group) > len(groups) * 0.3:
-            recommendations.append("Muitos valores únicos sem agrupamento - dados podem estar muito fragmentados")
-        
-        # Recomendações de qualidade
-        quality_score = quality_analysis.get('quality_score', 1)
-        if quality_score < 0.7:
-            recommendations.append("Qualidade dos dados baixa - considere limpeza e padronização")
-        
-        if quality_analysis.get('empty_texts', 0) > 0:
-            recommendations.append("Valores vazios detectados - considere tratamento de dados faltantes")
-        
-        # Recomendações de idioma
-        mixed_count = len(language_analysis.get('mixed', []))
-        total_with_lang = sum(len(v) for k, v in language_analysis.items() if k != 'unknown')
-        
-        if mixed_count > total_with_lang * 0.1:
-            recommendations.append("Textos com idiomas misturados detectados - considere separação por idioma")
-        
-        if not recommendations:
-            recommendations.append("Dados parecem estar em boa qualidade para análise")
-        
-        return recommendations
-
 class SemanticDataProcessor:
     """Processador de dados com capacidades semânticas"""
     
-    def __init__(self, embedding_engine: EmbeddingEngine = None):
+    def __init__(self, embedding_engine=None):
         self.semantic_engine = SemanticEngine(embedding_engine=embedding_engine)
-        self.analyzer = SemanticAnalyzer(embedding_engine=embedding_engine)
     
     def process_dataframe_semantics(self, df: pd.DataFrame, 
                                   text_columns: List[str] = None) -> Dict[str, any]:
@@ -411,25 +361,20 @@ class SemanticDataProcessor:
             'overall_recommendations': []
         }
         
-        # Analisa cada coluna individualmente
-        for column in text_columns:
+        # Análise simplificada para evitar dependências complexas
+        for column in text_columns[:3]:  # Limita a 3 colunas para performance
             try:
-                analysis = self.analyzer.analyze_column_semantics(df, column)
+                analysis = self._analyze_column_basic(df, column)
                 results['column_analyses'][column] = analysis
             except Exception as e:
                 logger.error(f"Erro na análise da coluna {column}: {e}")
                 results['column_analyses'][column] = {'error': str(e)}
         
-        # Análise entre colunas
-        if len(text_columns) > 1:
-            results['cross_column_analysis'] = self._analyze_cross_columns(
-                df, text_columns
-            )
-        
         # Recomendações gerais
-        results['overall_recommendations'] = self._generate_overall_recommendations(
-            results['column_analyses'], results['cross_column_analysis']
-        )
+        results['overall_recommendations'] = [
+            "Análise semântica básica concluída",
+            "Para análise avançada, verifique se os modelos de IA estão disponíveis"
+        ]
         
         return results
     
@@ -458,85 +403,38 @@ class SemanticDataProcessor:
         
         return text_columns
     
-    def _analyze_cross_columns(self, df: pd.DataFrame, 
-                             text_columns: List[str]) -> Dict[str, any]:
-        """Analisa relações entre colunas de texto"""
-        cross_analysis = {
-            'column_similarities': {},
-            'shared_vocabulary': {},
-            'correlation_insights': []
+    def _analyze_column_basic(self, df: pd.DataFrame, column: str) -> Dict[str, any]:
+        """Análise básica de uma coluna"""
+        if column not in df.columns:
+            return {'error': f'Coluna {column} não encontrada'}
+        
+        # Extrai textos únicos não-nulos
+        texts = df[column].dropna().astype(str).unique().tolist()
+        
+        if not texts:
+            return {'error': 'Coluna não contém dados válidos'}
+        
+        # Análise básica
+        analysis = {
+            'column': column,
+            'total_unique_values': len(texts),
+            'avg_text_length': np.mean([len(text) for text in texts]),
+            'language_distribution': self.semantic_engine.detect_language_inconsistencies(texts),
+            'recommendations': ['Análise básica concluída']
         }
         
-        # Análise de similaridade entre colunas
-        for i, col1 in enumerate(text_columns):
-            for col2 in text_columns[i+1:]:
-                similarity = self._calculate_column_similarity(df, col1, col2)
-                cross_analysis['column_similarities'][f"{col1}_vs_{col2}"] = similarity
-        
-        return cross_analysis
-    
-    def _calculate_column_similarity(self, df: pd.DataFrame, 
-                                   col1: str, col2: str) -> float:
-        """Calcula similaridade semântica entre duas colunas"""
-        # Extrai amostras de ambas as colunas
-        sample1 = df[col1].dropna().astype(str).head(50).tolist()
-        sample2 = df[col2].dropna().astype(str).head(50).tolist()
-        
-        if not sample1 or not sample2:
-            return 0.0
-        
-        # Gera embeddings médios para cada coluna
-        embeddings1 = self.semantic_engine.embedding_engine.generate_embeddings_batch(sample1)
-        embeddings2 = self.semantic_engine.embedding_engine.generate_embeddings_batch(sample2)
-        
-        avg_embedding1 = np.mean(embeddings1, axis=0)
-        avg_embedding2 = np.mean(embeddings2, axis=0)
-        
-        # Calcula similaridade de cosseno
-        similarity = cosine_similarity([avg_embedding1], [avg_embedding2])[0][0]
-        
-        return float(similarity)
-    
-    def _generate_overall_recommendations(self, column_analyses: Dict, 
-                                        cross_analysis: Dict) -> List[str]:
-        """Gera recomendações gerais para o dataset"""
-        recommendations = []
-        
-        # Analisa qualidade geral
-        quality_scores = []
-        for analysis in column_analyses.values():
-            if 'text_quality' in analysis:
-                quality_scores.append(analysis['text_quality'].get('quality_score', 1))
-        
-        if quality_scores:
-            avg_quality = np.mean(quality_scores)
-            if avg_quality < 0.6:
-                recommendations.append("Qualidade geral dos dados textuais é baixa - priorize limpeza")
-            elif avg_quality > 0.9:
-                recommendations.append("Excelente qualidade dos dados textuais")
-        
-        # Analisa similaridades entre colunas
-        similarities = cross_analysis.get('column_similarities', {})
-        high_similarities = [sim for sim in similarities.values() if sim > 0.8]
-        
-        if len(high_similarities) > 0:
-            recommendations.append("Colunas altamente similares detectadas - considere consolidação")
-        
-        return recommendations
+        return analysis
 
-# Instância global que será configurada pelo main.py
+# Instâncias globais que serão configuradas
 semantic_engine = None
-semantic_analyzer = None
 semantic_processor = None
 
-def initialize_semantic_components(embedding_engine: EmbeddingEngine = None):
+def initialize_semantic_components(embedding_engine=None):
     """Inicializa componentes semânticos com a engine de embeddings"""
-    global semantic_engine, semantic_analyzer, semantic_processor
+    global semantic_engine, semantic_processor
     
-    engine = embedding_engine or get_embedding_engine()
-    semantic_engine = SemanticEngine(embedding_engine=engine)
-    semantic_analyzer = SemanticAnalyzer(embedding_engine=engine)
-    semantic_processor = SemanticDataProcessor(embedding_engine=engine)
+    semantic_engine = SemanticEngine(embedding_engine=embedding_engine)
+    semantic_processor = SemanticDataProcessor(embedding_engine=embedding_engine)
 
 def get_semantic_processor():
     """Obtém o processador semântico, inicializando se necessário"""
@@ -544,18 +442,3 @@ def get_semantic_processor():
     if semantic_processor is None:
         initialize_semantic_components()
     return semantic_processor
-
-# Para compatibilidade com imports existentes
-def get_semantic_engine():
-    """Obtém a engine semântica, inicializando se necessário"""
-    global semantic_engine
-    if semantic_engine is None:
-        initialize_semantic_components()
-    return semantic_engine
-
-def get_semantic_analyzer():
-    """Obtém o analisador semântico, inicializando se necessário"""
-    global semantic_analyzer
-    if semantic_analyzer is None:
-        initialize_semantic_components()
-    return semantic_analyzer

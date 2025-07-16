@@ -10,3 +10,161 @@
 2025-07-15 22:12:36,399 - __main__ - INFO - Sistema iniciando...
 2025-07-15 22:12:40,583 - __main__ - ERROR - Erro fatal: cannot import name 'embedding_engine' from 'models.embeddings' (C:\Users\sousa\Projects\ServiceTratamentsApi\models\embeddings.py)
 2025-07-15 22:12:40,583 - core.memory_manager - INFO - Monitoramento de memória parado
+2025-07-15 22:27:19,402 - __main__ - INFO - Sistema iniciando...
+2025-07-15 22:27:23,932 - __main__ - ERROR - Erro fatal: cannot import name 'ReportExporter' from 'visualization.report_exporter' (C:\Users\sousa\Projects\ServiceTratamentsApi\visualization\report_exporter.py)
+2025-07-15 22:27:23,932 - core.memory_manager - INFO - Monitoramento de memória parado
+2025-07-15 22:32:38,121 - __main__ - INFO - Sistema iniciando...
+2025-07-15 22:32:42,296 - models.embeddings - INFO - Carregando modelo: paraphrase-MiniLM-L6-v2
+2025-07-15 22:32:42,296 - sentence_transformers.SentenceTransformer - INFO - Load pretrained SentenceTransformer: paraphrase-MiniLM-L6-v2
+2025-07-15 22:32:58,452 - models.embeddings - INFO - Modelo carregado com sentence-transformers
+2025-07-15 22:32:58,591 - core.memory_manager - INFO - Monitoramento de memória iniciado
+2025-07-15 22:32:59,859 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.1.2:5000
+2025-07-15 22:32:59,860 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-07-15 22:33:12,198 - werkzeug - INFO - 127.0.0.1 - - [15/Jul/2025 22:33:12] "[33mGET / HTTP/1.1[0m" 404 -
+2025-07-15 22:33:12,337 - werkzeug - INFO - 127.0.0.1 - - [15/Jul/2025 22:33:12] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-07-15 22:40:41,481 - werkzeug - INFO - 127.0.0.1 - - [15/Jul/2025 22:40:41] "[33mGET / HTTP/1.1[0m" 404 -
+2025-07-15 22:41:02,638 - werkzeug - INFO - 127.0.0.1 - - [15/Jul/2025 22:41:02] "[33mGET / HTTP/1.1[0m" 404 -
+2025-07-15 22:41:02,671 - werkzeug - INFO - 127.0.0.1 - - [15/Jul/2025 22:41:02] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-07-15 22:41:21,654 - __main__ - INFO - Sistema iniciando...
+2025-07-15 22:41:25,800 - models.embeddings - INFO - Carregando modelo: paraphrase-MiniLM-L6-v2
+2025-07-15 22:41:25,801 - sentence_transformers.SentenceTransformer - INFO - Load pretrained SentenceTransformer: paraphrase-MiniLM-L6-v2
+2025-07-15 22:41:26,064 - models.embeddings - INFO - Modelo carregado com sentence-transformers
+2025-07-15 22:41:26,172 - core.memory_manager - INFO - Monitoramento de memória iniciado
+2025-07-15 22:41:27,419 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.1.2:5000
+2025-07-15 22:41:27,420 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-07-15 22:41:29,087 - api.app - ERROR - Exception on / [GET]
+Traceback (most recent call last):
+  File "C:\Users\sousa\AppData\Roaming\Python\Python310\site-packages\flask\app.py", line 1473, in wsgi_app
+    response = self.full_dispatch_request()
+  File "C:\Users\sousa\AppData\Roaming\Python\Python310\site-packages\flask\app.py", line 882, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "C:\Users\sousa\AppData\Roaming\Python\Python310\site-packages\flask_cors\extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+  File "C:\Users\sousa\AppData\Roaming\Python\Python310\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\sousa\AppData\Roaming\Python\Python310\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "C:\Users\sousa\Projects\ServiceTratamentsApi\api\app.py", line 148, in index
+    return render_template('index.html')
+  File "C:\Users\sousa\AppData\Roaming\Python\Python310\site-packages\flask\templating.py", line 149, in render_template
+    template = app.jinja_env.get_or_select_template(template_name_or_list)
+  File "C:\Users\sousa\AppData\Roaming\Python\Python310\site-packages\jinja2\environment.py", line 1084, in get_or_select_template
+    return self.get_template(template_name_or_list, parent, globals)
+  File "C:\Users\sousa\AppData\Roaming\Python\Python310\site-packages\jinja2\environment.py", line 1013, in get_template
+    return self._load_template(name, globals)
+  File "C:\Users\sousa\AppData\Roaming\Python\Python310\site-packages\jinja2\environment.py", line 972, in _load_template
+    template = self.loader.load(self, name, self.make_globals(globals))
+  File "C:\Users\sousa\AppData\Roaming\Python\Python310\site-packages\jinja2\loaders.py", line 126, in load
+    source, filename, uptodate = self.get_source(environment, name)
+  File "C:\Users\sousa\AppData\Roaming\Python\Python310\site-packages\flask\templating.py", line 65, in get_source
+    return self._get_source_fast(environment, template)
+  File "C:\Users\sousa\AppData\Roaming\Python\Python310\site-packages\flask\templating.py", line 99, in _get_source_fast
+    raise TemplateNotFound(template)
+jinja2.exceptions.TemplateNotFound: index.html
+2025-07-15 22:41:29,088 - api.app - ERROR - Erro interno do servidor: 500 Internal Server Error: The server encountered an internal error and was unable to complete your request. Either the server is overloaded or there is an error in the application.
+2025-07-15 22:41:29,088 - werkzeug - INFO - 127.0.0.1 - - [15/Jul/2025 22:41:29] "[35m[1mGET / HTTP/1.1[0m" 500 -
+2025-07-15 22:42:46,332 - api.app - ERROR - Exception on / [GET]
+Traceback (most recent call last):
+  File "C:\Users\sousa\AppData\Roaming\Python\Python310\site-packages\flask\app.py", line 1473, in wsgi_app
+    response = self.full_dispatch_request()
+  File "C:\Users\sousa\AppData\Roaming\Python\Python310\site-packages\flask\app.py", line 882, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "C:\Users\sousa\AppData\Roaming\Python\Python310\site-packages\flask_cors\extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+  File "C:\Users\sousa\AppData\Roaming\Python\Python310\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\sousa\AppData\Roaming\Python\Python310\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "C:\Users\sousa\Projects\ServiceTratamentsApi\api\app.py", line 148, in index
+    return render_template('index.html')
+  File "C:\Users\sousa\AppData\Roaming\Python\Python310\site-packages\flask\templating.py", line 149, in render_template
+    template = app.jinja_env.get_or_select_template(template_name_or_list)
+  File "C:\Users\sousa\AppData\Roaming\Python\Python310\site-packages\jinja2\environment.py", line 1084, in get_or_select_template
+    return self.get_template(template_name_or_list, parent, globals)
+  File "C:\Users\sousa\AppData\Roaming\Python\Python310\site-packages\jinja2\environment.py", line 1013, in get_template
+    return self._load_template(name, globals)
+  File "C:\Users\sousa\AppData\Roaming\Python\Python310\site-packages\jinja2\environment.py", line 972, in _load_template
+    template = self.loader.load(self, name, self.make_globals(globals))
+  File "C:\Users\sousa\AppData\Roaming\Python\Python310\site-packages\jinja2\loaders.py", line 126, in load
+    source, filename, uptodate = self.get_source(environment, name)
+  File "C:\Users\sousa\AppData\Roaming\Python\Python310\site-packages\flask\templating.py", line 65, in get_source
+    return self._get_source_fast(environment, template)
+  File "C:\Users\sousa\AppData\Roaming\Python\Python310\site-packages\flask\templating.py", line 99, in _get_source_fast
+    raise TemplateNotFound(template)
+jinja2.exceptions.TemplateNotFound: index.html
+2025-07-15 22:42:46,333 - api.app - ERROR - Erro interno do servidor: 500 Internal Server Error: The server encountered an internal error and was unable to complete your request. Either the server is overloaded or there is an error in the application.
+2025-07-15 22:42:46,334 - werkzeug - INFO - 127.0.0.1 - - [15/Jul/2025 22:42:46] "[35m[1mGET / HTTP/1.1[0m" 500 -
+2025-07-15 22:42:46,377 - werkzeug - INFO - 127.0.0.1 - - [15/Jul/2025 22:42:46] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-07-15 22:43:00,428 - __main__ - INFO - Sistema iniciando...
+2025-07-15 22:43:04,576 - models.embeddings - INFO - Carregando modelo: paraphrase-MiniLM-L6-v2
+2025-07-15 22:43:04,577 - sentence_transformers.SentenceTransformer - INFO - Load pretrained SentenceTransformer: paraphrase-MiniLM-L6-v2
+2025-07-15 22:43:04,837 - models.embeddings - INFO - Modelo carregado com sentence-transformers
+2025-07-15 22:43:04,942 - core.memory_manager - INFO - Monitoramento de memória iniciado
+2025-07-15 22:43:06,188 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.1.2:5000
+2025-07-15 22:43:06,188 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-07-15 22:43:08,331 - api.app - ERROR - Exception on / [GET]
+Traceback (most recent call last):
+  File "C:\Users\sousa\AppData\Roaming\Python\Python310\site-packages\flask\app.py", line 1473, in wsgi_app
+    response = self.full_dispatch_request()
+  File "C:\Users\sousa\AppData\Roaming\Python\Python310\site-packages\flask\app.py", line 882, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "C:\Users\sousa\AppData\Roaming\Python\Python310\site-packages\flask_cors\extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+  File "C:\Users\sousa\AppData\Roaming\Python\Python310\site-packages\flask\app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\sousa\AppData\Roaming\Python\Python310\site-packages\flask\app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "C:\Users\sousa\Projects\ServiceTratamentsApi\api\app.py", line 148, in index
+    return render_template('index.html')
+  File "C:\Users\sousa\AppData\Roaming\Python\Python310\site-packages\flask\templating.py", line 149, in render_template
+    template = app.jinja_env.get_or_select_template(template_name_or_list)
+  File "C:\Users\sousa\AppData\Roaming\Python\Python310\site-packages\jinja2\environment.py", line 1084, in get_or_select_template
+    return self.get_template(template_name_or_list, parent, globals)
+  File "C:\Users\sousa\AppData\Roaming\Python\Python310\site-packages\jinja2\environment.py", line 1013, in get_template
+    return self._load_template(name, globals)
+  File "C:\Users\sousa\AppData\Roaming\Python\Python310\site-packages\jinja2\environment.py", line 972, in _load_template
+    template = self.loader.load(self, name, self.make_globals(globals))
+  File "C:\Users\sousa\AppData\Roaming\Python\Python310\site-packages\jinja2\loaders.py", line 126, in load
+    source, filename, uptodate = self.get_source(environment, name)
+  File "C:\Users\sousa\AppData\Roaming\Python\Python310\site-packages\flask\templating.py", line 65, in get_source
+    return self._get_source_fast(environment, template)
+  File "C:\Users\sousa\AppData\Roaming\Python\Python310\site-packages\flask\templating.py", line 99, in _get_source_fast
+    raise TemplateNotFound(template)
+jinja2.exceptions.TemplateNotFound: index.html
+2025-07-15 22:43:08,333 - api.app - ERROR - Erro interno do servidor: 500 Internal Server Error: The server encountered an internal error and was unable to complete your request. Either the server is overloaded or there is an error in the application.
+2025-07-15 22:43:08,334 - werkzeug - INFO - 127.0.0.1 - - [15/Jul/2025 22:43:08] "[35m[1mGET / HTTP/1.1[0m" 500 -
+2025-07-15 22:43:08,371 - werkzeug - INFO - 127.0.0.1 - - [15/Jul/2025 22:43:08] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-07-15 22:45:54,747 - __main__ - INFO - Sistema iniciando...
+2025-07-15 22:45:58,899 - models.embeddings - INFO - Carregando modelo: paraphrase-MiniLM-L6-v2
+2025-07-15 22:45:58,900 - sentence_transformers.SentenceTransformer - INFO - Load pretrained SentenceTransformer: paraphrase-MiniLM-L6-v2
+2025-07-15 22:45:59,175 - models.embeddings - INFO - Modelo carregado com sentence-transformers
+2025-07-15 22:45:59,292 - core.memory_manager - INFO - Monitoramento de memória iniciado
+2025-07-15 22:46:00,548 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.1.2:5000
+2025-07-15 22:46:00,549 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-07-15 22:46:03,965 - werkzeug - INFO - 127.0.0.1 - - [15/Jul/2025 22:46:03] "GET / HTTP/1.1" 200 -
+2025-07-15 22:46:04,018 - werkzeug - INFO - 127.0.0.1 - - [15/Jul/2025 22:46:04] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-07-15 22:46:06,237 - werkzeug - INFO - 127.0.0.1 - - [15/Jul/2025 22:46:06] "GET /health HTTP/1.1" 200 -
+2025-07-15 22:46:17,461 - werkzeug - INFO - 127.0.0.1 - - [15/Jul/2025 22:46:17] "GET /health HTTP/1.1" 200 -
+2025-07-15 22:47:56,924 - werkzeug - INFO - 127.0.0.1 - - [15/Jul/2025 22:47:56] "GET /health HTTP/1.1" 200 -
+2025-07-15 22:47:56,957 - werkzeug - INFO - 127.0.0.1 - - [15/Jul/2025 22:47:56] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-07-15 22:47:59,712 - werkzeug - INFO - 127.0.0.1 - - [15/Jul/2025 22:47:59] "GET / HTTP/1.1" 200 -
+2025-07-15 22:47:59,742 - werkzeug - INFO - 127.0.0.1 - - [15/Jul/2025 22:47:59] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-07-15 22:48:06,540 - core.memory_manager - INFO - Monitoramento de memória parado
+2025-07-15 22:48:14,049 - __main__ - INFO - Sistema iniciando...
+2025-07-15 22:48:18,203 - models.embeddings - INFO - Carregando modelo: paraphrase-MiniLM-L6-v2
+2025-07-15 22:48:18,203 - sentence_transformers.SentenceTransformer - INFO - Load pretrained SentenceTransformer: paraphrase-MiniLM-L6-v2
+2025-07-15 22:48:18,470 - models.embeddings - INFO - Modelo carregado com sentence-transformers
+2025-07-15 22:48:18,490 - __main__ - ERROR - Erro fatal: expected an indented block after function definition on line 146 (app.py, line 148)
+2025-07-15 22:48:18,490 - core.memory_manager - INFO - Monitoramento de memória parado

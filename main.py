@@ -65,8 +65,10 @@ def create_directories():
 def initialize_models():
     """Inicializa modelos de ML"""
     try:
-        # Importa a classe EmbeddingEngine (não uma instância!)
-        from models.embeddings import EmbeddingEngine
+        # CORREÇÃO: Import apenas no momento de uso, não no topo
+        import importlib
+        embeddings_module = importlib.import_module('models.embeddings')
+        EmbeddingEngine = getattr(embeddings_module, 'EmbeddingEngine')
         
         # Cria uma instância local
         embedding_engine = EmbeddingEngine()
@@ -162,7 +164,7 @@ def print_usage_info(embedding_engine=None):
         ))
     except:
         print(usage_info.format(
-            max_memory="8",
+            max_memory="4",
             max_file_size="500",
             model_name="Carregando..."
         ))
@@ -216,8 +218,11 @@ def main():
         print("\n🌟 Sistema pronto! Iniciando servidor...")
         print("   Pressione Ctrl+C para parar\n")
 
-        # Importa e inicia a aplicação Flask
-        from api.app import app
+        # CORREÇÃO: Import da aplicação Flask de forma tardia
+        import importlib
+        app_module = importlib.import_module('api.app')
+        app = getattr(app_module, 'app')
+        
         app.run(
             host='0.0.0.0',
             port=5000,

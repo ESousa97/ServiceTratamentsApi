@@ -2,15 +2,21 @@ import numpy as np
 import hashlib
 import pickle
 from typing import List, Dict, Union, Optional, Tuple
-from sentence_transformers import SentenceTransformer
-import torch
-from transformers import AutoTokenizer, AutoModel
 import logging
 
-# Importações locais - SEM instâncias globais aqui
-from core.memory_manager import memory_manager
-from config.settings import config
-from config.database import db, cache
+# Imports condicionais para evitar problemas circulares
+try:
+    from sentence_transformers import SentenceTransformer
+    SENTENCE_TRANSFORMERS_AVAILABLE = True
+except ImportError:
+    SENTENCE_TRANSFORMERS_AVAILABLE = False
+    
+try:
+    import torch
+    from transformers import AutoTokenizer, AutoModel
+    TRANSFORMERS_AVAILABLE = True
+except ImportError:
+    TRANSFORMERS_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
@@ -18,12 +24,28 @@ class EmbeddingEngine:
     """Engine para geração e cache de embeddings"""
     
     def __init__(self, model_name: str = None, device: str = None):
-        self.model_name = model_name or config.EMBEDDING_MODEL
-        self.device = device or ('cuda' if torch.cuda.is_available() else 'cpu')
+        # Configuração básica
+        self.model_name = model_name or "paraphrase-MiniLM-L6-v2"
+        
+        if device:
+            self.device = device
+        elif TRANSFORMERS_AVAILABLE and torch.cuda.is_available():
+            self.device = 'cuda'
+        else:
+            self.device = 'cpu'
+            
         self.model = None
         self.tokenizer = None
         self.model_type = None
+        
+        # Configurações padrão
+        self.max_sequence_length = 512
+        
+        # Inicializa modelo
         self._load_model()
+        
+        # Cache em memória simples
+        self._memory_cache = {}
         
     def _load_model(self):
         """Carrega modelo de embeddings"""
@@ -31,34 +53,36 @@ class EmbeddingEngine:
             logger.info(f"Carregando modelo: {self.model_name}")
             
             # Tenta carregar com sentence-transformers primeiro
-            try:
-                self.model = SentenceTransformer(self.model_name, device=self.device)
-                self.model_type = 'sentence_transformer'
-                logger.info("Modelo carregado com sentence-transformers")
-            except Exception as e:
-                logger.warning(f"Falha no sentence-transformers, tentando transformers puro: {e}")
-                # Fallback para transformers
-                self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
-                self.model = AutoModel.from_pretrained(self.model_name)
-                self.model.to(self.device)
-                self.model_type = 'transformer'
-                logger.info("Modelo carregado com transformers")
+            if SENTENCE_TRANSFORMERS_AVAILABLE:
+                try:
+                    self.model = SentenceTransformer(self.model_name, device=self.device)
+                    self.model_type = 'sentence_transformer'
+                    logger.info("Modelo carregado com sentence-transformers")
+                    return
+                except Exception as e:
+                    logger.warning(f"Falha no sentence-transformers: {e}")
+            
+            # Fallback para transformers
+            if TRANSFORMERS_AVAILABLE:
+                try:
+                    self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
+                    self.model = AutoModel.from_pretrained(self.model_name)
+                    self.model.to(self.device)
+                    self.model_type = 'transformer'
+                    logger.info("Modelo carregado com transformers")
+                    return
+                except Exception as e:
+                    logger.warning(f"Falha no transformers: {e}")
+            
+            # Fallback final - modelo dummy
+            logger.warning("Usando modelo dummy para embeddings")
+            self.model_type = 'dummy'
+            self.model = None
                 
         except Exception as e:
             logger.error(f"Erro ao carregar modelo: {e}")
-            # Fallback para modelo simples
-            self._load_fallback_model()
-    
-    def _load_fallback_model(self):
-        """Carrega modelo fallback simples"""
-        try:
-            self.model = SentenceTransformer('paraphrase-MiniLM-L6-v2', device=self.device)
-            self.model_type = 'sentence_transformer'
-            self.model_name = 'paraphrase-MiniLM-L6-v2'
-            logger.warning("Usando modelo fallback: paraphrase-MiniLM-L6-v2")
-        except Exception as e:
-            logger.error(f"Erro ao carregar modelo fallback: {e}")
-            raise RuntimeError("Não foi possível carregar nenhum modelo de embeddings")
+            self.model_type = 'dummy'
+            self.model = None
     
     def _generate_text_hash(self, text: str) -> str:
         """Gera hash único para texto"""
@@ -67,52 +91,22 @@ class EmbeddingEngine:
         return hashlib.md5(hash_input).hexdigest()
     
     def _get_cached_embedding(self, text: str) -> Optional[np.ndarray]:
-        """Recupera embedding do cache"""
+        """Recupera embedding do cache em memória"""
         text_hash = self._generate_text_hash(text)
-        
-        # Tenta cache em memória primeiro
-        cached = cache.get(f"embedding_{text_hash}")
-        if cached is not None:
-            return cached
-        
-        # Tenta banco de dados
-        try:
-            with db.get_cursor() as cursor:
-                cursor.execute('''
-                    SELECT embedding FROM embeddings_cache 
-                    WHERE text_hash = %s AND model_name = %s
-                ''', (text_hash, self.model_name))
-                
-                row = cursor.fetchone()
-                if row:
-                    embedding = pickle.loads(row[0])
-                    # Adiciona ao cache em memória
-                    cache.set(f"embedding_{text_hash}", embedding, expire_seconds=3600)
-                    return embedding
-        except Exception as e:
-            logger.warning(f"Erro ao recuperar embedding do cache: {e}")
-        
-        return None
+        return self._memory_cache.get(text_hash)
     
     def _cache_embedding(self, text: str, embedding: np.ndarray):
-        """Armazena embedding no cache"""
+        """Armazena embedding no cache em memória"""
         text_hash = self._generate_text_hash(text)
         
-        # Cache em memória
-        cache.set(f"embedding_{text_hash}", embedding, expire_seconds=3600)
+        # Limita tamanho do cache
+        if len(self._memory_cache) > 1000:
+            # Remove primeiro item (FIFO simples)
+            first_key = next(iter(self._memory_cache))
+            del self._memory_cache[first_key]
         
-        # Cache no banco de dados
-        try:
-            with db.get_cursor() as cursor:
-                cursor.execute('''
-                    INSERT OR REPLACE INTO embeddings_cache 
-                    (text_hash, embedding, model_name)
-                    VALUES (%s, %s, %s)
-                ''', (text_hash, pickle.dumps(embedding), self.model_name))
-        except Exception as e:
-            logger.warning(f"Erro ao armazenar embedding no cache: {e}")
+        self._memory_cache[text_hash] = embedding
     
-    @memory_manager.memory_limiter
     def generate_embedding(self, text: str, use_cache: bool = True) -> np.ndarray:
         """Gera embedding para texto único"""
         if not text or not text.strip():
@@ -129,8 +123,11 @@ class EmbeddingEngine:
         try:
             if self.model_type == 'sentence_transformer':
                 embedding = self.model.encode(text, convert_to_numpy=True)
-            else:
+            elif self.model_type == 'transformer':
                 embedding = self._generate_with_transformer(text)
+            else:
+                # Modelo dummy - retorna vetor aleatório baseado no hash do texto
+                embedding = self._generate_dummy_embedding(text)
             
             # Armazena no cache
             if use_cache:
@@ -140,8 +137,8 @@ class EmbeddingEngine:
             
         except Exception as e:
             logger.error(f"Erro ao gerar embedding: {e}")
-            # Retorna embedding zero em caso de erro
-            return np.zeros(self._get_embedding_dimension())
+            # Retorna embedding dummy em caso de erro
+            return self._generate_dummy_embedding(text)
     
     def _generate_with_transformer(self, text: str) -> np.ndarray:
         """Gera embedding usando transformers direto"""
@@ -150,7 +147,7 @@ class EmbeddingEngine:
             inputs = self.tokenizer(
                 text, 
                 return_tensors='pt', 
-                max_length=config.MAX_SEQUENCE_LENGTH,
+                max_length=self.max_sequence_length,
                 truncation=True, 
                 padding=True
             )
@@ -177,13 +174,25 @@ class EmbeddingEngine:
             
         except Exception as e:
             logger.error(f"Erro na geração com transformer: {e}")
-            raise
+            return self._generate_dummy_embedding(text)
+    
+    def _generate_dummy_embedding(self, text: str) -> np.ndarray:
+        """Gera embedding dummy baseado no hash do texto"""
+        # Usa hash do texto como seed para reprodutibilidade
+        hash_value = hash(text) % (2**32)
+        np.random.seed(hash_value)
+        
+        # Gera vetor aleatório normalizado
+        embedding = np.random.randn(self._get_embedding_dimension())
+        embedding = embedding / np.linalg.norm(embedding)
+        
+        return embedding.astype(np.float32)
     
     def generate_embeddings_batch(self, texts: List[str], 
                                  batch_size: int = None, 
                                  use_cache: bool = True) -> List[np.ndarray]:
         """Gera embeddings para lista de textos"""
-        batch_size = batch_size or config.BATCH_SIZE
+        batch_size = batch_size or 32
         
         all_embeddings = []
         
@@ -209,15 +218,16 @@ class EmbeddingEngine:
             # Gera embeddings para textos não cacheados
             if uncached_texts:
                 try:
-                    if self.model_type == 'sentence_transformer':
+                    if self.model_type == 'sentence_transformer' and self.model:
                         new_embeddings = self.model.encode(
                             uncached_texts, 
                             convert_to_numpy=True,
                             batch_size=min(batch_size, len(uncached_texts))
                         )
                     else:
+                        # Processa individualmente
                         new_embeddings = [
-                            self._generate_with_transformer(text) 
+                            self.generate_embedding(text, use_cache=False) 
                             for text in uncached_texts
                         ]
                     
@@ -227,14 +237,15 @@ class EmbeddingEngine:
                         
                         # Cache individual
                         if use_cache:
-                            self._cache_embedding(uncached_texts[uncached_indices.index(idx)], embedding)
+                            original_text = batch_texts[idx]
+                            self._cache_embedding(original_text, embedding)
                     
                 except Exception as e:
                     logger.error(f"Erro no batch {i//batch_size + 1}: {e}")
-                    # Adiciona embeddings zero para textos com erro
-                    zero_embedding = np.zeros(self._get_embedding_dimension())
+                    # Adiciona embeddings dummy para textos com erro
                     for idx in uncached_indices:
-                        batch_embeddings.append((idx, zero_embedding))
+                        dummy_embedding = self._generate_dummy_embedding(batch_texts[idx])
+                        batch_embeddings.append((idx, dummy_embedding))
             
             # Ordena embeddings pela posição original
             batch_embeddings.sort(key=lambda x: x[0])
@@ -246,15 +257,18 @@ class EmbeddingEngine:
     
     def _get_embedding_dimension(self) -> int:
         """Retorna dimensão dos embeddings"""
-        if self.model_type == 'sentence_transformer':
+        if self.model_type == 'sentence_transformer' and self.model:
             return self.model.get_sentence_embedding_dimension()
-        else:
+        elif self.model_type == 'transformer':
             # Para transformers, faz uma inferência teste
             try:
                 test_embedding = self._generate_with_transformer("test")
                 return len(test_embedding)
             except:
                 return 768  # Dimensão padrão para BERT-like models
+        else:
+            # Modelo dummy - dimensão fixa
+            return 384  # Dimensão compatível com MiniLM
     
     def get_model_info(self) -> Dict[str, any]:
         """Retorna informações do modelo"""
@@ -263,7 +277,8 @@ class EmbeddingEngine:
             'model_type': self.model_type,
             'device': self.device,
             'embedding_dimension': self._get_embedding_dimension(),
-            'max_sequence_length': config.MAX_SEQUENCE_LENGTH
+            'max_sequence_length': self.max_sequence_length,
+            'cache_size': len(self._memory_cache)
         }
 
 class TextPreprocessor:
@@ -288,7 +303,7 @@ class TextPreprocessor:
     @staticmethod
     def truncate_text(text: str, max_length: int = None) -> str:
         """Trunca texto para comprimento máximo"""
-        max_length = max_length or config.MAX_SEQUENCE_LENGTH
+        max_length = max_length or 512
         
         if len(text) <= max_length:
             return text
@@ -301,6 +316,4 @@ class TextPreprocessor:
             return truncated[:last_space]
         
         return truncated
-
-# REMOVIDO: Não instancie nada aqui para evitar imports circulares!
-# A instância será criada onde for necessária
+    

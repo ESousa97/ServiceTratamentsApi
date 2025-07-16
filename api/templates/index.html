@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧠 Intelligent CSV Processor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 40px;
+            max-width: 800px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .header {
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+            line-height: 1.6;
+        }
+
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 60px 20px;
+            margin: 30px 0;
+            background: #f8f9ff;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .upload-area:hover {
+            border-color: #764ba2;
+            background: #f0f2ff;
+        }
+
+        .upload-area.dragover {
+            border-color: #52c41a;
+            background: #f6ffed;
+        }
+
+        .upload-icon {
+            font-size: 4em;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .upload-text {
+            font-size: 1.2em;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .upload-subtext {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .progress-container {
+            display: none;
+            margin: 30px 0;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #f0f0f0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            margin-top: 10px;
+            color: #666;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 40px 0;
+        }
+
+        .feature {
+            background: #f8f9ff;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .feature h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .feature p {
+            color: #666;
+            font-size: 0.9em;
+            line-height: 1.4;
+        }
+
+        .status-message {
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .status-success {
+            background: #f6ffed;
+            border: 1px solid #b7eb8f;
+            color: #389e0d;
+        }
+
+        .status-error {
+            background: #fff2f0;
+            border: 1px solid #ffccc7;
+            color: #cf1322;
+        }
+
+        .status-info {
+            background: #e6f7ff;
+            border: 1px solid #91d5ff;
+            color: #0958d9;
+        }
+
+        .results-container {
+            display: none;
+            margin-top: 30px;
+            text-align: left;
+        }
+
+        .metric-card {
+            background: #f8f9ff;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+
+        .metric-card h4 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .metric-card p {
+            color: #666;
+            margin: 0;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+                margin: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .features {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧠 Intelligent CSV Processor</h1>
+            <p>Sistema de Análise Automatizada de Dados com Inteligência Artificial</p>
+        </div>
+
+        <div class="upload-area" id="uploadArea">
+            <div class="upload-icon">📁</div>
+            <div class="upload-text">Arraste seu arquivo CSV aqui</div>
+            <div class="upload-subtext">ou clique para selecionar (máximo 500MB)</div>
+            <input type="file" id="fileInput" class="file-input" accept=".csv,.xlsx,.xls,.tsv">
+        </div>
+
+        <button class="btn" id="selectButton">Selecionar Arquivo</button>
+        <button class="btn" id="uploadButton" disabled>Fazer Upload</button>
+
+        <div class="status-message" id="statusMessage"></div>
+
+        <div class="progress-container" id="progressContainer">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-text" id="progressText">Preparando...</div>
+        </div>
+
+        <div class="results-container" id="resultsContainer">
+            <h3>📊 Resultados da Análise</h3>
+            <div id="resultsContent"></div>
+            <button class="btn" id="downloadButton">Baixar Relatório</button>
+            <button class="btn" id="viewDashboardButton">Ver Dashboard</button>
+        </div>
+
+        <div class="features">
+            <div class="feature">
+                <h3>📈 Análise Estatística</h3>
+                <p>Estatísticas descritivas, distribuições e testes de normalidade automatizados</p>
+            </div>
+            <div class="feature">
+                <h3>🔍 Detecção de Padrões</h3>
+                <p>Identificação automática de padrões temporais, sequenciais e anômalos</p>
+            </div>
+            <div class="feature">
+                <h3>🧠 Análise Semântica</h3>
+                <p>Processamento de texto com redes neurais e análise de similaridade</p>
+            </div>
+            <div class="feature">
+                <h3>📊 Dashboards Interativos</h3>
+                <p>Visualizações dinâmicas e relatórios executivos gerados automaticamente</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedFile = null;
+        let currentJobId = null;
+
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const selectButton = document.getElementById('selectButton');
+        const uploadButton = document.getElementById('uploadButton');
+        const statusMessage = document.getElementById('statusMessage');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressFill = document.getElementById('progressFill');
+        const progressText = document.getElementById('progressText');
+        const resultsContainer = document.getElementById('resultsContainer');
+        const resultsContent = document.getElementById('resultsContent');
+        const downloadButton = document.getElementById('downloadButton');
+        const viewDashboardButton = document.getElementById('viewDashboardButton');
+
+        // Event listeners
+        selectButton.addEventListener('click', () => fileInput.click());
+        uploadButton.addEventListener('click', uploadFile);
+        downloadButton.addEventListener('click', downloadReport);
+        viewDashboardButton.addEventListener('click', viewDashboard);
+
+        // Drag and drop
+        uploadArea.addEventListener('click', () => fileInput.click());
+        uploadArea.addEventListener('dragover', handleDragOver);
+        uploadArea.addEventListener('dragleave', handleDragLeave);
+        uploadArea.addEventListener('drop', handleDrop);
+
+        fileInput.addEventListener('change', handleFileSelect);
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        }
+
+        function handleDragLeave(e) {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFileSelect({ target: { files: files } });
+            }
+        }
+
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            // Validações
+            const maxSize = 500 * 1024 * 1024; // 500MB
+            const allowedTypes = ['.csv', '.xlsx', '.xls', '.tsv'];
+            const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
+
+            if (file.size > maxSize) {
+                showMessage('Arquivo muito grande. Máximo permitido: 500MB', 'error');
+                return;
+            }
+
+            if (!allowedTypes.includes(fileExtension)) {
+                showMessage('Tipo de arquivo não suportado. Use: CSV, Excel ou TSV', 'error');
+                return;
+            }
+
+            selectedFile = file;
+            uploadButton.disabled = false;
+            
+            const sizeText = formatFileSize(file.size);
+            showMessage(`Arquivo selecionado: ${file.name} (${sizeText})`, 'success');
+        }
+
+        async function uploadFile() {
+            if (!selectedFile) return;
+
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+
+            uploadButton.disabled = true;
+            showProgress(0, 'Enviando arquivo...');
+
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    currentJobId = result.job_id;
+                    showMessage(`Upload concluído! Tempo estimado: ${result.estimated_processing_time_minutes} minutos`, 'success');
+                    
+                    // Inicia processamento automaticamente
+                    setTimeout(() => startProcessing(), 1000);
+                } else {
+                    throw new Error(result.error || 'Erro no upload');
+                }
+
+            } catch (error) {
+                showMessage(`Erro no upload: ${error.message}`, 'error');
+                uploadButton.disabled = false;
+                hideProgress();
+            }
+        }
+
+        async function startProcessing() {
+            if (!currentJobId) return;
+
+            try {
+                const response = await fetch(`/process/${currentJobId}`, {
+                    method: 'POST'
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showMessage('Processamento iniciado! Acompanhe o progresso abaixo.', 'info');
+                    pollStatus();
+                } else {
+                    throw new Error(result.error || 'Erro ao iniciar processamento');
+                }
+
+            } catch (error) {
+                showMessage(`Erro no processamento: ${error.message}`, 'error');
+                hideProgress();
+            }
+        }
+
+        async function pollStatus() {
+            if (!currentJobId) return;
+
+            try {
+                const response = await fetch(`/status/${currentJobId}`);
+                const status = await response.json();
+
+                if (response.ok) {
+                    updateProgress(status.progress, getStatusText(status.status));
+
+                    if (status.status === 'completed') {
+                        showMessage('Processamento concluído com sucesso!', 'success');
+                        loadResults();
+                    } else if (status.status === 'failed') {
+                        throw new Error(status.error_message || 'Processamento falhou');
+                    } else if (status.status === 'processing') {
+                        // Continua polling
+                        setTimeout(pollStatus, 2000);
+                    }
+                } else {
+                    throw new Error('Erro ao verificar status');
+                }
+
+            } catch (error) {
+                showMessage(`Erro no status: ${error.message}`, 'error');
+                hideProgress();
+            }
+        }
+
+        async function loadResults() {
+            if (!currentJobId) return;
+
+            try {
+                const response = await fetch(`/results/${currentJobId}`);
+                const results = await response.json();
+
+                if (response.ok) {
+                    displayResults(results);
+                    resultsContainer.style.display = 'block';
+                    hideProgress();
+                } else {
+                    throw new Error(results.error || 'Erro ao carregar resultados');
+                }
+
+            } catch (error) {
+                showMessage(`Erro ao carregar resultados: ${error.message}`, 'error');
+            }
+        }
+
+        function displayResults(results) {
+            const jobInfo = results.job_info;
+            const analyses = results.analyses;
+
+            let html = `
+                <div class="metric-card">
+                    <h4>📁 Informações do Arquivo</h4>
+                    <p><strong>Nome:</strong> ${jobInfo.filename}</p>
+                    <p><strong>Linhas:</strong> ${jobInfo.rows_count?.toLocaleString() || 'N/A'}</p>
+                    <p><strong>Colunas:</strong> ${jobInfo.columns_count || 'N/A'}</p>
+                    <p><strong>Tamanho:</strong> ${formatFileSize(jobInfo.file_size || 0)}</p>
+                </div>
+            `;
+
+            if (analyses.statistical) {
+                const stats = analyses.statistical;
+                html += `
+                    <div class="metric-card">
+                        <h4>📊 Análise Estatística</h4>
+                        <p><strong>Qualidade dos Dados:</strong> ${getQualityLevel(stats.data_quality?.overall_score)}</p>
+                        <p><strong>Colunas Numéricas:</strong> ${stats.basic_stats?.numeric_columns || 0}</p>
+                        <p><strong>Colunas Categóricas:</strong> ${stats.basic_stats?.categorical_columns || 0}</p>
+                    </div>
+                `;
+            }
+
+            if (analyses.patterns) {
+                html += `
+                    <div class="metric-card">
+                        <h4>🔍 Padrões Detectados</h4>
+                        <p>Análise de padrões concluída com sucesso</p>
+                    </div>
+                `;
+            }
+
+            if (analyses.semantic) {
+                html += `
+                    <div class="metric-card">
+                        <h4>🧠 Análise Semântica</h4>
+                        <p>Processamento semântico realizado</p>
+                    </div>
+                `;
+            }
+
+            resultsContent.innerHTML = html;
+        }
+
+        function downloadReport() {
+            if (!currentJobId) return;
+            
+            showMessage('Preparando relatório para download...', 'info');
+            
+            // Simula download (implementar endpoint real)
+            setTimeout(() => {
+                showMessage('Funcionalidade de download será implementada em breve', 'info');
+            }, 1000);
+        }
+
+        function viewDashboard() {
+            if (!currentJobId) return;
+            
+            // Abre dashboard em nova aba
+            window.open(`/dashboard/${currentJobId}`, '_blank');
+        }
+
+        function showMessage(text, type) {
+            statusMessage.textContent = text;
+            statusMessage.className = `status-message status-${type}`;
+            statusMessage.style.display = 'block';
+        }
+
+        function showProgress(percent, text) {
+            progressContainer.style.display = 'block';
+            updateProgress(percent, text);
+        }
+
+        function updateProgress(percent, text) {
+            progressFill.style.width = `${percent}%`;
+            progressText.textContent = text;
+        }
+
+        function hideProgress() {
+            progressContainer.style.display = 'none';
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function getStatusText(status) {
+            const statusTexts = {
+                'pending': 'Aguardando...',
+                'processing': 'Processando...',
+                'completed': 'Concluído!',
+                'failed': 'Falhou'
+            };
+            return statusTexts[status] || status;
+        }
+
+        function getQualityLevel(score) {
+            if (!score) return 'N/A';
+            
+            const percentage = Math.round(score * 100);
+            if (percentage >= 90) return `Excelente (${percentage}%)`;
+            if (percentage >= 70) return `Boa (${percentage}%)`;
+            if (percentage >= 50) return `Regular (${percentage}%)`;
+            return `Baixa (${percentage}%)`;
+        }
+    </script>
+</body>
+</html>

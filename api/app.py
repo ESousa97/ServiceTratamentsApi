@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_file
+from flask import Flask, request, jsonify, send_file, render_template, send_from_directory
 from flask_cors import CORS
 import os
 import threading
@@ -14,7 +14,8 @@ from config.database import db, cache
 from core.file_handler import CSVProcessor, FileValidator
 from core.memory_manager import memory_manager
 from core.semantic_engine import semantic_processor
-# REMOVIDO: from models.embeddings import embedding_engine
+# CORREÇÃO: Removido import que causava problema circular
+# from models.embeddings import embedding_engine
 from analysis.statistical_analyzer import statistical_analyzer
 from analysis.pattern_detector import pattern_detector
 from visualization.dashboard_generator import dashboard_generator
@@ -120,8 +121,8 @@ class IntelligentCSVProcessor:
             if job_id in self.current_jobs:
                 del self.current_jobs[job_id]
 
-# Inicialização da aplicação
-app = Flask(__name__)
+# Inicialização da aplicação (DEVE ESTAR NO TOPO, ANTES DAS ROTAS)
+app = Flask(__name__, template_folder='templates', static_folder='static')
 CORS(app, origins=config.CORS_ORIGINS)
 
 # Configuração da aplicação
@@ -136,6 +137,41 @@ processor = IntelligentCSVProcessor()
 
 # Inicia monitoramento de memória
 memory_manager.start_monitoring()
+
+# ============================================================================
+# ROTAS DA INTERFACE WEB
+# ============================================================================
+
+@app.route('/')
+def index():
+    """Página inicial da aplicação"""
+    return render_template('index.html')
+
+@app.route('/static/<path:filename>')
+def static_files(filename):
+    """Serve arquivos estáticos"""
+    return send_from_directory('static', filename)
+
+@app.route('/health-check')
+def health_check_web():
+    """Health check para a interface web"""
+    embedding_engine = get_embedding_engine()
+    model_info = embedding_engine.get_model_info() if embedding_engine else {'model_name': 'Não carregado'}
+    
+    return jsonify({
+        'status': 'healthy',
+        'timestamp': datetime.now().isoformat(),
+        'memory_usage_gb': memory_manager.get_memory_stats().process_memory_gb,
+        'embedding_model': model_info.get('model_name', 'Não disponível'),
+        'config': {
+            'max_memory_gb': config.MAX_MEMORY_GB,
+            'max_file_size_mb': config.MAX_FILE_SIZE_MB
+        }
+    })
+
+# ============================================================================
+# ROTAS DA API (EXISTENTES)
+# ============================================================================
 
 @app.route('/health', methods=['GET'])
 def health_check():
@@ -393,6 +429,10 @@ def get_memory_stats():
     except Exception as e:
         logger.error(f"Erro ao obter estatísticas de memória: {e}")
         return jsonify({'error': f'Erro interno: {str(e)}'}), 500
+    
+# ============================================================================
+# ERROR HANDLERS
+# ============================================================================
 
 @app.errorhandler(413)
 def file_too_large(e):
