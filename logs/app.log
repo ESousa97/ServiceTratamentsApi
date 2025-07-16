@@ -521,3 +521,336 @@ Traceback (most recent call last):
 jinja2.exceptions.TemplateNotFound: error.html
 2025-07-15 23:43:44,015 - api.app - ERROR - Erro interno do servidor: 500 Internal Server Error: The server encountered an internal error and was unable to complete your request. Either the server is overloaded or there is an error in the application.
 2025-07-15 23:43:44,016 - werkzeug - INFO - 127.0.0.1 - - [15/Jul/2025 23:43:44] "[35m[1mGET /dashboard/24 HTTP/1.1[0m" 500 -
+2025-07-15 23:45:52,602 - __main__ - INFO - Sistema iniciando...
+2025-07-15 23:45:56,750 - models.embeddings - INFO - Carregando modelo: paraphrase-MiniLM-L6-v2
+2025-07-15 23:45:56,750 - sentence_transformers.SentenceTransformer - INFO - Load pretrained SentenceTransformer: paraphrase-MiniLM-L6-v2
+2025-07-15 23:45:57,017 - models.embeddings - INFO - Modelo carregado com sentence-transformers
+2025-07-15 23:45:57,124 - core.memory_manager - INFO - Monitoramento de memória iniciado
+2025-07-15 23:45:58,373 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.1.2:5000
+2025-07-15 23:45:58,373 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-07-15 23:46:00,441 - werkzeug - INFO - 127.0.0.1 - - [15/Jul/2025 23:46:00] "GET / HTTP/1.1" 200 -
+2025-07-15 23:46:05,338 - core.file_handler - INFO - Arquivo limpo criado: C:\Users\sousa\AppData\Local\Temp\tmph04bz1ey.csv
+2025-07-15 23:46:05,339 - core.file_handler - WARNING - Sniffer falhou: Could not determine delimiter
+2025-07-15 23:46:05,340 - core.file_handler - INFO - Delimiter detectado: ',' (score: 13)
+2025-07-15 23:46:05,343 - core.file_handler - INFO - Arquivo lido com configurações detectadas
+2025-07-15 23:46:05,349 - werkzeug - INFO - 127.0.0.1 - - [15/Jul/2025 23:46:05] "POST /upload HTTP/1.1" 200 -
+2025-07-15 23:46:06,354 - werkzeug - INFO - 127.0.0.1 - - [15/Jul/2025 23:46:06] "POST /process/26 HTTP/1.1" 200 -
+2025-07-15 23:46:06,358 - api.app - INFO - Iniciando processamento do job 26
+2025-07-15 23:46:06,359 - werkzeug - INFO - 127.0.0.1 - - [15/Jul/2025 23:46:06] "GET /status/26 HTTP/1.1" 200 -
+2025-07-15 23:46:06,408 - core.file_handler - INFO - Arquivo limpo criado: C:\Users\sousa\AppData\Local\Temp\tmp7jou4xlj.csv
+2025-07-15 23:46:06,409 - core.file_handler - WARNING - Sniffer falhou: Could not determine delimiter
+2025-07-15 23:46:06,409 - core.file_handler - INFO - Delimiter detectado: ',' (score: 13)
+2025-07-15 23:46:06,411 - core.file_handler - INFO - Arquivo lido com configurações detectadas
+2025-07-15 23:46:06,416 - core.file_handler - ERROR - Erro no carregamento chunked: ',' expected after '"'
+2025-07-15 23:46:06,426 - analysis.statistical_analyzer - INFO - Iniciando análise estatística de dataset com 768 linhas e 1 colunas
+2025-07-15 23:46:06,438 - config.database - INFO - Análise statistical salva com sucesso para job 26
+2025-07-15 23:46:06,450 - analysis.pattern_detector - INFO - Iniciando detecção de padrões completa
+2025-07-15 23:46:06,469 - config.database - INFO - Análise patterns salva com sucesso para job 26
+2025-07-15 23:46:06,480 - config.database - INFO - Análise semantic salva com sucesso para job 26
+2025-07-15 23:46:06,489 - visualization.dashboard_generator - INFO - Gerando dashboard completo
+2025-07-15 23:46:06,704 - config.database - INFO - Análise dashboard salva com sucesso para job 26
+2025-07-15 23:46:06,708 - api.app - INFO - Job 26 processado com sucesso
+2025-07-15 23:46:08,377 - werkzeug - INFO - 127.0.0.1 - - [15/Jul/2025 23:46:08] "GET /status/26 HTTP/1.1" 200 -
+2025-07-15 23:46:08,384 - werkzeug - INFO - 127.0.0.1 - - [15/Jul/2025 23:46:08] "GET /results/26 HTTP/1.1" 200 -
+2025-07-15 23:46:11,442 - werkzeug - INFO - 127.0.0.1 - - [15/Jul/2025 23:46:11] "GET /dashboard/26 HTTP/1.1" 200 -
+2025-07-15 23:46:47,837 - core.file_handler - INFO - Arquivo limpo criado: C:\Users\sousa\AppData\Local\Temp\tmpyy7tfl6y.csv
+2025-07-15 23:46:47,875 - core.file_handler - INFO - Arquivo lido com configurações detectadas
+2025-07-15 23:46:47,903 - werkzeug - INFO - 127.0.0.1 - - [15/Jul/2025 23:46:47] "POST /upload HTTP/1.1" 200 -
+2025-07-15 23:46:48,909 - werkzeug - INFO - 127.0.0.1 - - [15/Jul/2025 23:46:48] "POST /process/27 HTTP/1.1" 200 -
+2025-07-15 23:46:48,915 - api.app - INFO - Iniciando processamento do job 27
+2025-07-15 23:46:48,917 - werkzeug - INFO - 127.0.0.1 - - [15/Jul/2025 23:46:48] "GET /status/27 HTTP/1.1" 200 -
+2025-07-15 23:46:50,252 - core.file_handler - INFO - Arquivo limpo criado: C:\Users\sousa\AppData\Local\Temp\tmpihgrw3lu.csv
+2025-07-15 23:46:50,289 - core.file_handler - INFO - Arquivo lido com configurações detectadas
+2025-07-15 23:46:50,353 - core.file_handler - INFO - Coluna Column_5 mantida como float64 devido a valores grandes
+2025-07-15 23:46:50,706 - core.file_handler - INFO - Coluna Column_5 mantida como float64 devido a valores grandes
+2025-07-15 23:46:50,751 - core.file_handler - INFO - Coluna Column_5 mantida como float64 devido a valores grandes
+2025-07-15 23:46:50,929 - werkzeug - INFO - 127.0.0.1 - - [15/Jul/2025 23:46:50] "GET /status/27 HTTP/1.1" 200 -
+2025-07-15 23:46:50,930 - core.file_handler - INFO - Coluna Column_5 mantida como float64 devido a valores grandes
+2025-07-15 23:46:51,058 - core.file_handler - INFO - Arquivo temporário limpo: C:\Users\sousa\AppData\Local\Temp\tmpihgrw3lu.csv
+2025-07-15 23:46:51,072 - analysis.statistical_analyzer - INFO - Iniciando análise estatística de dataset com 149861 linhas e 11 colunas
+2025-07-15 23:46:51,858 - config.database - INFO - Análise statistical salva com sucesso para job 27
+2025-07-15 23:46:51,867 - analysis.pattern_detector - INFO - Iniciando detecção de padrões completa
+2025-07-15 23:46:51,935 - analysis.pattern_detector - INFO - Dados reduzidos para 5000 amostras para clustering
+2025-07-15 23:46:52,935 - werkzeug - INFO - 127.0.0.1 - - [15/Jul/2025 23:46:52] "GET /status/27 HTTP/1.1" 200 -
+2025-07-15 23:46:54,946 - werkzeug - INFO - 127.0.0.1 - - [15/Jul/2025 23:46:54] "GET /status/27 HTTP/1.1" 200 -
+2025-07-15 23:46:56,991 - werkzeug - INFO - 127.0.0.1 - - [15/Jul/2025 23:46:56] "GET /status/27 HTTP/1.1" 200 -
+2025-07-15 23:46:59,024 - werkzeug - INFO - 127.0.0.1 - - [15/Jul/2025 23:46:59] "GET /status/27 HTTP/1.1" 200 -
+2025-07-15 23:47:01,070 - werkzeug - INFO - 127.0.0.1 - - [15/Jul/2025 23:47:01] "GET /status/27 HTTP/1.1" 200 -
+2025-07-15 23:47:02,595 - config.database - INFO - Análise patterns salva com sucesso para job 27
+2025-07-15 23:47:03,146 - werkzeug - INFO - 127.0.0.1 - - [15/Jul/2025 23:47:03] "GET /status/27 HTTP/1.1" 200 -
+2025-07-15 23:47:03,152 - config.database - INFO - Análise semantic salva com sucesso para job 27
+2025-07-15 23:47:03,167 - visualization.dashboard_generator - INFO - Gerando dashboard completo
+2025-07-15 23:47:03,653 - config.database - INFO - Análise dashboard salva com sucesso para job 27
+2025-07-15 23:47:03,660 - api.app - INFO - Job 27 processado com sucesso
+2025-07-15 23:47:05,152 - werkzeug - INFO - 127.0.0.1 - - [15/Jul/2025 23:47:05] "GET /status/27 HTTP/1.1" 200 -
+2025-07-15 23:47:05,200 - werkzeug - INFO - 127.0.0.1 - - [15/Jul/2025 23:47:05] "GET /results/27 HTTP/1.1" 200 -
+2025-07-15 23:47:09,560 - werkzeug - INFO - 127.0.0.1 - - [15/Jul/2025 23:47:09] "GET /dashboard/27 HTTP/1.1" 200 -
+2025-07-15 23:54:34,005 - core.file_handler - INFO - Arquivo limpo criado: C:\Users\sousa\AppData\Local\Temp\tmpil556nmq.csv
+2025-07-15 23:54:34,007 - core.file_handler - WARNING - Sniffer falhou: Could not determine delimiter
+2025-07-15 23:54:34,007 - core.file_handler - INFO - Delimiter detectado: ';' (score: 23)
+2025-07-15 23:54:34,008 - core.file_handler - INFO - Arquivo lido com configurações detectadas
+2025-07-15 23:54:34,014 - werkzeug - INFO - 127.0.0.1 - - [15/Jul/2025 23:54:34] "POST /upload HTTP/1.1" 200 -
+2025-07-15 23:54:35,022 - werkzeug - INFO - 127.0.0.1 - - [15/Jul/2025 23:54:35] "POST /process/28 HTTP/1.1" 200 -
+2025-07-15 23:54:35,025 - api.app - INFO - Iniciando processamento do job 28
+2025-07-15 23:54:35,053 - werkzeug - INFO - 127.0.0.1 - - [15/Jul/2025 23:54:35] "GET /status/28 HTTP/1.1" 200 -
+2025-07-15 23:54:35,063 - core.file_handler - INFO - Arquivo limpo criado: C:\Users\sousa\AppData\Local\Temp\tmpyxqsu1sm.csv
+2025-07-15 23:54:35,065 - core.file_handler - WARNING - Sniffer falhou: Could not determine delimiter
+2025-07-15 23:54:35,066 - core.file_handler - INFO - Delimiter detectado: ';' (score: 23)
+2025-07-15 23:54:35,067 - core.file_handler - INFO - Arquivo lido com configurações detectadas
+2025-07-15 23:54:35,073 - core.file_handler - ERROR - Erro no carregamento chunked: ';' expected after '"'
+2025-07-15 23:54:35,082 - analysis.statistical_analyzer - INFO - Iniciando análise estatística de dataset com 307 linhas e 2 colunas
+2025-07-15 23:54:35,093 - config.database - INFO - Análise statistical salva com sucesso para job 28
+2025-07-15 23:54:35,102 - analysis.pattern_detector - INFO - Iniciando detecção de padrões completa
+2025-07-15 23:54:35,117 - config.database - INFO - Análise patterns salva com sucesso para job 28
+2025-07-15 23:54:35,125 - config.database - INFO - Análise semantic salva com sucesso para job 28
+2025-07-15 23:54:35,133 - visualization.dashboard_generator - INFO - Gerando dashboard completo
+2025-07-15 23:54:35,166 - config.database - INFO - Análise dashboard salva com sucesso para job 28
+2025-07-15 23:54:35,170 - api.app - INFO - Job 28 processado com sucesso
+2025-07-15 23:54:37,064 - werkzeug - INFO - 127.0.0.1 - - [15/Jul/2025 23:54:37] "GET /status/28 HTTP/1.1" 200 -
+2025-07-15 23:54:37,069 - werkzeug - INFO - 127.0.0.1 - - [15/Jul/2025 23:54:37] "GET /results/28 HTTP/1.1" 200 -
+2025-07-15 23:54:38,517 - werkzeug - INFO - 127.0.0.1 - - [15/Jul/2025 23:54:38] "GET /dashboard/28 HTTP/1.1" 200 -
+2025-07-15 23:59:57,270 - core.memory_manager - INFO - Monitoramento de memória parado
+2025-07-16 00:00:05,536 - __main__ - INFO - Sistema iniciando...
+2025-07-16 00:00:09,687 - models.embeddings - INFO - Carregando modelo: paraphrase-MiniLM-L6-v2
+2025-07-16 00:00:09,688 - sentence_transformers.SentenceTransformer - INFO - Load pretrained SentenceTransformer: paraphrase-MiniLM-L6-v2
+2025-07-16 00:00:09,953 - models.embeddings - INFO - Modelo carregado com sentence-transformers
+2025-07-16 00:00:09,965 - __main__ - ERROR - Erro fatal: cannot import name 'FileValidator' from 'core.file_handler' (C:\Users\sousa\Projects\ServiceTratamentsApi\core\file_handler.py)
+2025-07-16 00:01:08,532 - __main__ - INFO - Sistema iniciando...
+2025-07-16 00:01:12,684 - models.embeddings - INFO - Carregando modelo: paraphrase-MiniLM-L6-v2
+2025-07-16 00:01:12,684 - sentence_transformers.SentenceTransformer - INFO - Load pretrained SentenceTransformer: paraphrase-MiniLM-L6-v2
+2025-07-16 00:01:12,950 - models.embeddings - INFO - Modelo carregado com sentence-transformers
+2025-07-16 00:01:13,064 - core.memory_manager - INFO - Monitoramento de memória iniciado
+2025-07-16 00:01:14,319 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.1.2:5000
+2025-07-16 00:01:14,319 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-07-16 00:01:14,426 - werkzeug - INFO - 127.0.0.1 - - [16/Jul/2025 00:01:14] "GET / HTTP/1.1" 200 -
+2025-07-16 00:01:14,484 - werkzeug - INFO - 127.0.0.1 - - [16/Jul/2025 00:01:14] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-07-16 00:01:20,358 - core.file_handler - INFO - Arquivo limpo criado: C:\Users\sousa\AppData\Local\Temp\tmpagr9ms7c.csv
+2025-07-16 00:01:20,360 - core.file_handler - WARNING - Erro detectando delimitador: Could not determine delimiter
+2025-07-16 00:01:20,364 - core.file_handler - INFO - Arquivo lido com delimitador ',' e header=False
+2025-07-16 00:01:20,370 - werkzeug - INFO - 127.0.0.1 - - [16/Jul/2025 00:01:20] "POST /upload HTTP/1.1" 200 -
+2025-07-16 00:01:21,376 - werkzeug - INFO - 127.0.0.1 - - [16/Jul/2025 00:01:21] "POST /process/30 HTTP/1.1" 200 -
+2025-07-16 00:01:21,382 - api.app - INFO - Iniciando processamento do job 30
+2025-07-16 00:01:21,401 - werkzeug - INFO - 127.0.0.1 - - [16/Jul/2025 00:01:21] "GET /status/30 HTTP/1.1" 200 -
+2025-07-16 00:01:21,433 - core.file_handler - INFO - Arquivo limpo criado: C:\Users\sousa\AppData\Local\Temp\tmpq11ya4dh.csv
+2025-07-16 00:01:21,435 - core.file_handler - WARNING - Erro detectando delimitador: Could not determine delimiter
+2025-07-16 00:01:21,437 - core.file_handler - INFO - Arquivo lido com delimitador ',' e header=False
+2025-07-16 00:01:21,441 - core.file_handler - ERROR - Erro no carregamento chunked: The 'low_memory' option is not supported with the 'python' engine
+2025-07-16 00:01:21,441 - core.file_handler - ERROR - Erro no fallback de carregamento: The 'low_memory' option is not supported with the 'python' engine
+2025-07-16 00:01:21,441 - api.app - ERROR - Erro no processamento do job 30: The 'low_memory' option is not supported with the 'python' engine
+2025-07-16 00:01:21,442 - api.app - ERROR - Traceback (most recent call last):
+  File "C:\Users\sousa\Projects\ServiceTratamentsApi\core\file_handler.py", line 134, in load_data_chunked
+    for chunk in pd.read_csv(actual_file_path, **read_params):
+  File "C:\Users\sousa\AppData\Roaming\Python\Python310\site-packages\pandas\io\parsers\readers.py", line 948, in read_csv
+    return _read(filepath_or_buffer, kwds)
+  File "C:\Users\sousa\AppData\Roaming\Python\Python310\site-packages\pandas\io\parsers\readers.py", line 611, in _read
+    parser = TextFileReader(filepath_or_buffer, **kwds)
+  File "C:\Users\sousa\AppData\Roaming\Python\Python310\site-packages\pandas\io\parsers\readers.py", line 1435, in __init__
+    options = self._get_options_with_defaults(engine)
+  File "C:\Users\sousa\AppData\Roaming\Python\Python310\site-packages\pandas\io\parsers\readers.py", line 1488, in _get_options_with_defaults
+    raise ValueError(
+ValueError: The 'low_memory' option is not supported with the 'python' engine
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\sousa\Projects\ServiceTratamentsApi\api\app.py", line 78, in process_file_async
+    df = self.csv_processor.load_data_chunked(file_path, metadata)
+  File "C:\Users\sousa\Projects\ServiceTratamentsApi\core\file_handler.py", line 145, in load_data_chunked
+    full_df = pd.read_csv(actual_file_path, **fallback_params)
+  File "C:\Users\sousa\AppData\Roaming\Python\Python310\site-packages\pandas\io\parsers\readers.py", line 948, in read_csv
+    return _read(filepath_or_buffer, kwds)
+  File "C:\Users\sousa\AppData\Roaming\Python\Python310\site-packages\pandas\io\parsers\readers.py", line 611, in _read
+    parser = TextFileReader(filepath_or_buffer, **kwds)
+  File "C:\Users\sousa\AppData\Roaming\Python\Python310\site-packages\pandas\io\parsers\readers.py", line 1435, in __init__
+    options = self._get_options_with_defaults(engine)
+  File "C:\Users\sousa\AppData\Roaming\Python\Python310\site-packages\pandas\io\parsers\readers.py", line 1488, in _get_options_with_defaults
+    raise ValueError(
+ValueError: The 'low_memory' option is not supported with the 'python' engine
+
+2025-07-16 00:01:23,421 - werkzeug - INFO - 127.0.0.1 - - [16/Jul/2025 00:01:23] "GET /status/30 HTTP/1.1" 200 -
+2025-07-16 00:03:19,346 - __main__ - INFO - Sistema iniciando...
+2025-07-16 00:03:23,501 - models.embeddings - INFO - Carregando modelo: paraphrase-MiniLM-L6-v2
+2025-07-16 00:03:23,502 - sentence_transformers.SentenceTransformer - INFO - Load pretrained SentenceTransformer: paraphrase-MiniLM-L6-v2
+2025-07-16 00:03:23,763 - models.embeddings - INFO - Modelo carregado com sentence-transformers
+2025-07-16 00:03:23,878 - core.memory_manager - INFO - Monitoramento de memória iniciado
+2025-07-16 00:03:25,124 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.1.2:5000
+2025-07-16 00:03:25,125 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-07-16 00:03:33,811 - werkzeug - INFO - 127.0.0.1 - - [16/Jul/2025 00:03:33] "GET / HTTP/1.1" 200 -
+2025-07-16 00:03:33,854 - werkzeug - INFO - 127.0.0.1 - - [16/Jul/2025 00:03:33] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-07-16 00:03:39,200 - core.file_handler - INFO - Arquivo limpo criado: C:\Users\sousa\AppData\Local\Temp\tmpf2549_sc.csv
+2025-07-16 00:03:39,202 - core.file_handler - WARNING - Erro detectando delimitador: Could not determine delimiter
+2025-07-16 00:03:39,204 - core.file_handler - INFO - Arquivo lido com delimitador ',' e header=False
+2025-07-16 00:03:39,213 - werkzeug - INFO - 127.0.0.1 - - [16/Jul/2025 00:03:39] "POST /upload HTTP/1.1" 200 -
+2025-07-16 00:03:40,218 - werkzeug - INFO - 127.0.0.1 - - [16/Jul/2025 00:03:40] "POST /process/32 HTTP/1.1" 200 -
+2025-07-16 00:03:40,223 - api.app - INFO - Iniciando processamento do job 32
+2025-07-16 00:03:40,242 - werkzeug - INFO - 127.0.0.1 - - [16/Jul/2025 00:03:40] "GET /status/32 HTTP/1.1" 200 -
+2025-07-16 00:03:40,273 - core.file_handler - INFO - Arquivo limpo criado: C:\Users\sousa\AppData\Local\Temp\tmpxsf3c98z.csv
+2025-07-16 00:03:40,275 - core.file_handler - WARNING - Erro detectando delimitador: Could not determine delimiter
+2025-07-16 00:03:40,277 - core.file_handler - INFO - Arquivo lido com delimitador ',' e header=False
+2025-07-16 00:03:40,281 - core.file_handler - ERROR - Erro no carregamento chunked: ',' expected after '"'
+2025-07-16 00:03:40,291 - analysis.statistical_analyzer - INFO - Iniciando análise estatística de dataset com 768 linhas e 1 colunas
+2025-07-16 00:03:40,304 - config.database - INFO - Análise statistical salva com sucesso para job 32
+2025-07-16 00:03:40,312 - analysis.pattern_detector - INFO - Iniciando detecção de padrões completa
+2025-07-16 00:03:40,331 - config.database - INFO - Análise patterns salva com sucesso para job 32
+2025-07-16 00:03:40,342 - config.database - INFO - Análise semantic salva com sucesso para job 32
+2025-07-16 00:03:40,351 - visualization.dashboard_generator - INFO - Gerando dashboard completo
+2025-07-16 00:03:40,591 - config.database - INFO - Análise dashboard salva com sucesso para job 32
+2025-07-16 00:03:40,596 - api.app - INFO - Job 32 processado com sucesso
+2025-07-16 00:03:42,265 - werkzeug - INFO - 127.0.0.1 - - [16/Jul/2025 00:03:42] "GET /status/32 HTTP/1.1" 200 -
+2025-07-16 00:03:42,275 - werkzeug - INFO - 127.0.0.1 - - [16/Jul/2025 00:03:42] "GET /results/32 HTTP/1.1" 200 -
+2025-07-16 00:03:44,595 - werkzeug - INFO - 127.0.0.1 - - [16/Jul/2025 00:03:44] "GET /dashboard/32 HTTP/1.1" 200 -
+2025-07-16 00:04:21,276 - werkzeug - INFO - 127.0.0.1 - - [16/Jul/2025 00:04:21] "GET /dashboard/32 HTTP/1.1" 200 -
+2025-07-16 00:04:26,751 - core.file_handler - INFO - Arquivo limpo criado: C:\Users\sousa\AppData\Local\Temp\tmpnxvq0v3o.csv
+2025-07-16 00:04:26,797 - core.file_handler - INFO - Arquivo lido com delimitador ',' e header=True
+2025-07-16 00:04:26,826 - werkzeug - INFO - 127.0.0.1 - - [16/Jul/2025 00:04:26] "POST /upload HTTP/1.1" 200 -
+2025-07-16 00:04:27,831 - werkzeug - INFO - 127.0.0.1 - - [16/Jul/2025 00:04:27] "POST /process/33 HTTP/1.1" 200 -
+2025-07-16 00:04:27,834 - api.app - INFO - Iniciando processamento do job 33
+2025-07-16 00:04:27,836 - werkzeug - INFO - 127.0.0.1 - - [16/Jul/2025 00:04:27] "GET /status/33 HTTP/1.1" 200 -
+2025-07-16 00:04:29,178 - core.file_handler - INFO - Arquivo limpo criado: C:\Users\sousa\AppData\Local\Temp\tmpwxtigs0n.csv
+2025-07-16 00:04:29,227 - core.file_handler - INFO - Arquivo lido com delimitador ',' e header=True
+2025-07-16 00:04:30,066 - core.file_handler - INFO - Arquivo temporário limpo: C:\Users\sousa\AppData\Local\Temp\tmpwxtigs0n.csv
+2025-07-16 00:04:30,081 - analysis.statistical_analyzer - INFO - Iniciando análise estatística de dataset com 149860 linhas e 11 colunas
+2025-07-16 00:04:30,328 - werkzeug - INFO - 127.0.0.1 - - [16/Jul/2025 00:04:30] "GET /status/33 HTTP/1.1" 200 -
+2025-07-16 00:04:30,553 - analysis.statistical_analyzer - WARNING - Erro no teste de normalidade: ufunc 'isnan' not supported for the input types, and the inputs could not be safely coerced to any supported types according to the casting rule ''safe''
+2025-07-16 00:04:30,794 - api.app - ERROR - Erro no processamento do job 33: data type <class 'numpy.object_'> not inexact
+2025-07-16 00:04:30,797 - api.app - ERROR - Traceback (most recent call last):
+  File "C:\Users\sousa\Projects\ServiceTratamentsApi\api\app.py", line 82, in process_file_async
+    statistical_results = statistical_analyzer.analyze_dataset(df)
+  File "C:\Users\sousa\Projects\ServiceTratamentsApi\core\memory_manager.py", line 76, in wrapper
+    result = func(*args, **kwargs)
+  File "C:\Users\sousa\Projects\ServiceTratamentsApi\analysis\statistical_analyzer.py", line 31, in analyze_dataset
+    'distributions': self._analyze_distributions(df),
+  File "C:\Users\sousa\Projects\ServiceTratamentsApi\analysis\statistical_analyzer.py", line 198, in _analyze_distributions
+    'skewness': float(stats.skew(data)),
+  File "C:\Users\sousa\AppData\Roaming\Python\Python310\site-packages\scipy\stats\_axis_nan_policy.py", line 523, in axis_nan_policy_wrapper
+    res = hypotest_fun_out(*samples, **kwds)
+  File "C:\Users\sousa\AppData\Roaming\Python\Python310\site-packages\scipy\stats\_stats_py.py", line 1194, in skew
+    m2 = _moment(a, 2, axis, mean=mean)
+  File "C:\Users\sousa\AppData\Roaming\Python\Python310\site-packages\scipy\stats\_stats_py.py", line 1072, in _moment
+    eps = np.finfo(a_zero_mean.dtype).resolution * 10
+  File "C:\Users\sousa\AppData\Roaming\Python\Python310\site-packages\numpy\core\getlimits.py", line 492, in __new__
+    raise ValueError("data type %r not inexact" % (dtype))
+ValueError: data type <class 'numpy.object_'> not inexact
+
+2025-07-16 00:04:32,333 - werkzeug - INFO - 127.0.0.1 - - [16/Jul/2025 00:04:32] "GET /status/33 HTTP/1.1" 200 -
+2025-07-16 00:04:45,339 - core.memory_manager - INFO - Monitoramento de memória parado
+2025-07-16 00:05:12,911 - __main__ - INFO - Sistema iniciando...
+2025-07-16 00:05:17,059 - models.embeddings - INFO - Carregando modelo: paraphrase-MiniLM-L6-v2
+2025-07-16 00:05:17,059 - sentence_transformers.SentenceTransformer - INFO - Load pretrained SentenceTransformer: paraphrase-MiniLM-L6-v2
+2025-07-16 00:05:17,336 - models.embeddings - INFO - Modelo carregado com sentence-transformers
+2025-07-16 00:05:17,455 - core.memory_manager - INFO - Monitoramento de memória iniciado
+2025-07-16 00:05:18,703 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.1.2:5000
+2025-07-16 00:05:18,703 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-07-16 00:05:18,843 - werkzeug - INFO - 127.0.0.1 - - [16/Jul/2025 00:05:18] "GET / HTTP/1.1" 200 -
+2025-07-16 00:05:18,943 - werkzeug - INFO - 127.0.0.1 - - [16/Jul/2025 00:05:18] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-07-16 00:05:25,389 - core.file_handler - INFO - Arquivo limpo criado: C:\Users\sousa\AppData\Local\Temp\tmp1mr9sykf.csv
+2025-07-16 00:05:25,426 - core.file_handler - INFO - Arquivo lido com configurações detectadas
+2025-07-16 00:05:25,456 - werkzeug - INFO - 127.0.0.1 - - [16/Jul/2025 00:05:25] "POST /upload HTTP/1.1" 200 -
+2025-07-16 00:05:26,462 - werkzeug - INFO - 127.0.0.1 - - [16/Jul/2025 00:05:26] "POST /process/35 HTTP/1.1" 200 -
+2025-07-16 00:05:26,465 - api.app - INFO - Iniciando processamento do job 35
+2025-07-16 00:05:26,468 - werkzeug - INFO - 127.0.0.1 - - [16/Jul/2025 00:05:26] "GET /status/35 HTTP/1.1" 200 -
+2025-07-16 00:05:27,876 - core.file_handler - INFO - Arquivo limpo criado: C:\Users\sousa\AppData\Local\Temp\tmpiy__peoq.csv
+2025-07-16 00:05:27,911 - core.file_handler - INFO - Arquivo lido com configurações detectadas
+2025-07-16 00:05:27,974 - core.file_handler - INFO - Coluna Column_5 mantida como float64 devido a valores grandes
+2025-07-16 00:05:28,322 - core.file_handler - INFO - Coluna Column_5 mantida como float64 devido a valores grandes
+2025-07-16 00:05:28,365 - core.file_handler - INFO - Coluna Column_5 mantida como float64 devido a valores grandes
+2025-07-16 00:05:28,475 - werkzeug - INFO - 127.0.0.1 - - [16/Jul/2025 00:05:28] "GET /status/35 HTTP/1.1" 200 -
+2025-07-16 00:05:28,554 - core.file_handler - INFO - Coluna Column_5 mantida como float64 devido a valores grandes
+2025-07-16 00:05:28,677 - core.file_handler - INFO - Arquivo temporário limpo: C:\Users\sousa\AppData\Local\Temp\tmpiy__peoq.csv
+2025-07-16 00:05:28,690 - analysis.statistical_analyzer - INFO - Iniciando análise estatística de dataset com 149861 linhas e 11 colunas
+2025-07-16 00:05:29,482 - config.database - INFO - Análise statistical salva com sucesso para job 35
+2025-07-16 00:05:29,495 - analysis.pattern_detector - INFO - Iniciando detecção de padrões completa
+2025-07-16 00:05:29,564 - analysis.pattern_detector - INFO - Dados reduzidos para 5000 amostras para clustering
+2025-07-16 00:05:30,482 - werkzeug - INFO - 127.0.0.1 - - [16/Jul/2025 00:05:30] "GET /status/35 HTTP/1.1" 200 -
+2025-07-16 00:05:32,488 - werkzeug - INFO - 127.0.0.1 - - [16/Jul/2025 00:05:32] "GET /status/35 HTTP/1.1" 200 -
+2025-07-16 00:05:34,579 - werkzeug - INFO - 127.0.0.1 - - [16/Jul/2025 00:05:34] "GET /status/35 HTTP/1.1" 200 -
+2025-07-16 00:05:36,627 - werkzeug - INFO - 127.0.0.1 - - [16/Jul/2025 00:05:36] "GET /status/35 HTTP/1.1" 200 -
+2025-07-16 00:05:38,657 - werkzeug - INFO - 127.0.0.1 - - [16/Jul/2025 00:05:38] "GET /status/35 HTTP/1.1" 200 -
+2025-07-16 00:05:40,117 - config.database - INFO - Análise patterns salva com sucesso para job 35
+2025-07-16 00:05:40,644 - config.database - INFO - Análise semantic salva com sucesso para job 35
+2025-07-16 00:05:40,661 - visualization.dashboard_generator - INFO - Gerando dashboard completo
+2025-07-16 00:05:40,781 - werkzeug - INFO - 127.0.0.1 - - [16/Jul/2025 00:05:40] "GET /status/35 HTTP/1.1" 200 -
+2025-07-16 00:05:41,341 - config.database - INFO - Análise dashboard salva com sucesso para job 35
+2025-07-16 00:05:41,350 - api.app - INFO - Job 35 processado com sucesso
+2025-07-16 00:05:42,787 - werkzeug - INFO - 127.0.0.1 - - [16/Jul/2025 00:05:42] "GET /status/35 HTTP/1.1" 200 -
+2025-07-16 00:05:42,830 - werkzeug - INFO - 127.0.0.1 - - [16/Jul/2025 00:05:42] "GET /results/35 HTTP/1.1" 200 -
+2025-07-16 00:05:55,816 - werkzeug - INFO - 127.0.0.1 - - [16/Jul/2025 00:05:55] "GET / HTTP/1.1" 200 -
+2025-07-16 00:05:55,855 - werkzeug - INFO - 127.0.0.1 - - [16/Jul/2025 00:05:55] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-07-16 00:06:50,310 - core.file_handler - INFO - Arquivo limpo criado: C:\Users\sousa\AppData\Local\Temp\tmpvn5yn4cn.csv
+2025-07-16 00:06:50,315 - core.file_handler - INFO - Arquivo lido com configurações detectadas
+2025-07-16 00:06:50,338 - werkzeug - INFO - 127.0.0.1 - - [16/Jul/2025 00:06:50] "POST /upload HTTP/1.1" 200 -
+2025-07-16 00:07:05,340 - core.file_handler - INFO - Arquivo limpo criado: C:\Users\sousa\AppData\Local\Temp\tmp66o9bhnc.csv
+2025-07-16 00:07:05,342 - core.file_handler - INFO - Arquivo lido com configurações detectadas
+2025-07-16 00:07:05,348 - werkzeug - INFO - 127.0.0.1 - - [16/Jul/2025 00:07:05] "POST /upload HTTP/1.1" 200 -
+2025-07-16 00:07:06,357 - werkzeug - INFO - 127.0.0.1 - - [16/Jul/2025 00:07:06] "POST /process/37 HTTP/1.1" 200 -
+2025-07-16 00:07:06,364 - api.app - INFO - Iniciando processamento do job 37
+2025-07-16 00:07:06,372 - werkzeug - INFO - 127.0.0.1 - - [16/Jul/2025 00:07:06] "GET /status/37 HTTP/1.1" 200 -
+2025-07-16 00:07:06,377 - core.file_handler - INFO - Arquivo limpo criado: C:\Users\sousa\AppData\Local\Temp\tmpt0nglsi_.csv
+2025-07-16 00:07:06,379 - core.file_handler - INFO - Arquivo lido com configurações detectadas
+2025-07-16 00:07:06,388 - core.file_handler - INFO - Arquivo temporário limpo: C:\Users\sousa\AppData\Local\Temp\tmpt0nglsi_.csv
+2025-07-16 00:07:06,395 - analysis.statistical_analyzer - INFO - Iniciando análise estatística de dataset com 352 linhas e 4 colunas
+2025-07-16 00:07:06,413 - config.database - INFO - Análise statistical salva com sucesso para job 37
+2025-07-16 00:07:06,422 - analysis.pattern_detector - INFO - Iniciando detecção de padrões completa
+2025-07-16 00:07:06,536 - config.database - INFO - Análise patterns salva com sucesso para job 37
+2025-07-16 00:07:06,548 - config.database - INFO - Análise semantic salva com sucesso para job 37
+2025-07-16 00:07:06,561 - visualization.dashboard_generator - INFO - Gerando dashboard completo
+2025-07-16 00:07:06,610 - config.database - INFO - Análise dashboard salva com sucesso para job 37
+2025-07-16 00:07:06,614 - api.app - INFO - Job 37 processado com sucesso
+2025-07-16 00:07:08,378 - werkzeug - INFO - 127.0.0.1 - - [16/Jul/2025 00:07:08] "GET /status/37 HTTP/1.1" 200 -
+2025-07-16 00:07:08,392 - werkzeug - INFO - 127.0.0.1 - - [16/Jul/2025 00:07:08] "GET /results/37 HTTP/1.1" 200 -
+2025-07-16 00:07:33,410 - core.memory_manager - INFO - Monitoramento de memória parado
+2025-07-16 00:07:46,372 - __main__ - INFO - Sistema iniciando...
+2025-07-16 00:07:50,523 - models.embeddings - INFO - Carregando modelo: paraphrase-MiniLM-L6-v2
+2025-07-16 00:07:50,523 - sentence_transformers.SentenceTransformer - INFO - Load pretrained SentenceTransformer: paraphrase-MiniLM-L6-v2
+2025-07-16 00:07:50,798 - models.embeddings - INFO - Modelo carregado com sentence-transformers
+2025-07-16 00:07:50,906 - core.memory_manager - INFO - Monitoramento de memória iniciado
+2025-07-16 00:07:52,154 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.1.2:5000
+2025-07-16 00:07:52,154 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-07-16 00:07:52,999 - werkzeug - INFO - 127.0.0.1 - - [16/Jul/2025 00:07:52] "GET / HTTP/1.1" 200 -
+2025-07-16 00:07:53,039 - werkzeug - INFO - 127.0.0.1 - - [16/Jul/2025 00:07:53] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-07-16 00:08:53,747 - core.file_handler - INFO - Arquivo limpo criado: C:\Users\sousa\AppData\Local\Temp\tmp9omma5bb.csv
+2025-07-16 00:08:53,749 - core.file_handler - WARNING - Sniffer falhou: Could not determine delimiter
+2025-07-16 00:08:53,750 - core.file_handler - INFO - Delimiter detectado: ':' (score: 28)
+2025-07-16 00:08:53,752 - core.file_handler - WARNING - Primeira tentativa falhou: ':' expected after '"'
+2025-07-16 00:08:53,752 - core.file_handler - WARNING - Segunda tentativa falhou: the 'c' engine does not support sep=None with delim_whitespace=False
+2025-07-16 00:08:53,754 - core.file_handler - INFO - Arquivo lido com configuração forçada (vírgula, sem header)
+2025-07-16 00:08:53,762 - werkzeug - INFO - 127.0.0.1 - - [16/Jul/2025 00:08:53] "POST /upload HTTP/1.1" 200 -
+2025-07-16 00:08:54,767 - werkzeug - INFO - 127.0.0.1 - - [16/Jul/2025 00:08:54] "POST /process/39 HTTP/1.1" 200 -
+2025-07-16 00:08:54,772 - api.app - INFO - Iniciando processamento do job 39
+2025-07-16 00:08:54,794 - werkzeug - INFO - 127.0.0.1 - - [16/Jul/2025 00:08:54] "GET /status/39 HTTP/1.1" 200 -
+2025-07-16 00:08:54,814 - core.file_handler - INFO - Arquivo limpo criado: C:\Users\sousa\AppData\Local\Temp\tmpn216s8go.csv
+2025-07-16 00:08:54,816 - core.file_handler - WARNING - Sniffer falhou: Could not determine delimiter
+2025-07-16 00:08:54,816 - core.file_handler - INFO - Delimiter detectado: ':' (score: 28)
+2025-07-16 00:08:54,818 - core.file_handler - WARNING - Primeira tentativa falhou: ':' expected after '"'
+2025-07-16 00:08:54,818 - core.file_handler - WARNING - Segunda tentativa falhou: the 'c' engine does not support sep=None with delim_whitespace=False
+2025-07-16 00:08:54,819 - core.file_handler - INFO - Arquivo lido com configuração forçada (vírgula, sem header)
+2025-07-16 00:08:54,824 - core.file_handler - ERROR - Erro no carregamento chunked: ',' expected after '"'
+2025-07-16 00:08:54,833 - analysis.statistical_analyzer - INFO - Iniciando análise estatística de dataset com 479 linhas e 1 colunas
+2025-07-16 00:08:54,843 - config.database - INFO - Análise statistical salva com sucesso para job 39
+2025-07-16 00:08:54,851 - analysis.pattern_detector - INFO - Iniciando detecção de padrões completa
+2025-07-16 00:08:54,868 - config.database - INFO - Análise patterns salva com sucesso para job 39
+2025-07-16 00:08:54,876 - config.database - INFO - Análise semantic salva com sucesso para job 39
+2025-07-16 00:08:54,885 - visualization.dashboard_generator - INFO - Gerando dashboard completo
+2025-07-16 00:08:55,106 - config.database - INFO - Análise dashboard salva com sucesso para job 39
+2025-07-16 00:08:55,110 - api.app - INFO - Job 39 processado com sucesso
+2025-07-16 00:08:56,810 - werkzeug - INFO - 127.0.0.1 - - [16/Jul/2025 00:08:56] "GET /status/39 HTTP/1.1" 200 -
+2025-07-16 00:08:56,818 - werkzeug - INFO - 127.0.0.1 - - [16/Jul/2025 00:08:56] "GET /results/39 HTTP/1.1" 200 -
+2025-07-16 00:08:58,689 - werkzeug - INFO - 127.0.0.1 - - [16/Jul/2025 00:08:58] "GET /dashboard/39 HTTP/1.1" 200 -
+2025-07-16 00:09:40,464 - core.file_handler - INFO - Arquivo limpo criado: C:\Users\sousa\AppData\Local\Temp\tmp6sxfh5c5.csv
+2025-07-16 00:09:40,469 - core.file_handler - INFO - Arquivo lido com configurações detectadas
+2025-07-16 00:09:40,492 - werkzeug - INFO - 127.0.0.1 - - [16/Jul/2025 00:09:40] "POST /upload HTTP/1.1" 200 -
