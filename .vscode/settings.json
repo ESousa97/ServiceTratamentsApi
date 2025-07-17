@@ -1,7 +1,0 @@
-{
-  "files.associations": {
-    "*.html": "jinja"
-  },
-  // Se você usar a extensão “Jinja” ou “Django Template”:
-  "jinja.enable": true
-}

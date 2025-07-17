@@ -1,1 +1,79 @@
-uploads
+# Byte-compiled / optimized / DLL files
+**/__pycache__/
+*.py[cod]
+*$py.class
+
+# Especificamente para garantir, pode também (redundante, mas explícito):
+analysis/__pycache__/
+core/__pycache__/
+config/__pycache__/
+
+# Caches
+.cache/
+*.log
+*.tmp
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+*.wheel
+
+# Environment files
+.env
+.venv/
+venv/
+ENV/
+env/
+Pipfile.lock
+poetry.lock
+
+# PyInstaller
+*.spec
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Jupyter
+.ipynb_checkpoints
+
+# VS Code
+.vscode/
+.history/
+
+# Output and reports
+/output/
+output/
+*.csv
+*.json
+
+# Tests
+coverage.xml
+.tox/
+.nox/
+.pytest_cache/
+
+# mypy/misc tools
+.mypy_cache/
+.dmypy.json
+.pyre/
+
+# Windows installer
+*.exe
+*.msi
+
+# Notebooks (if any)
+*.ipynb
+
+# Custom - Project Artifacts
+reports/
+*.xlsx
+*.xls
+
+# Backup
+*~
+*.bak
+*.old
