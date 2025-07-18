@@ -9,3 +9,6 @@ rdflib
 sentence-transformers
 scikit-learn
 tqdm
+dash
+dash-bootstrap-components
+flask
