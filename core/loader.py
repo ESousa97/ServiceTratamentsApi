@@ -1,12 +1,41 @@
-# core/loader.py
 import pandas as pd
 import chardet
 import os
+
+def load_and_clean_excel(file_path):
+    """
+    Carrega arquivo Excel e realiza limpeza básica:
+    - Remove linhas e colunas vazias
+    - Limpa espaços e caracteres invisíveis em strings
+    - Tenta converter colunas de datas
+    """
+    # Carrega com openpyxl (pode gerar warnings ignorados)
+    df = pd.read_excel(file_path, engine='openpyxl')
+
+    # Remove linhas e colunas totalmente vazias
+    df.dropna(axis=0, how='all', inplace=True)
+    df.dropna(axis=1, how='all', inplace=True)
+
+    # Limpa espaços dos nomes das colunas
+    df.columns = df.columns.str.strip()
+
+    # Limpa strings nas colunas do tipo object
+    for col in df.select_dtypes(include=['object']).columns:
+        df[col] = df[col].astype(str).str.strip().str.replace(r'[\x00-\x1F]+', '', regex=True)
+
+    # Tenta converter colunas que parecem datas
+    for col in df.columns:
+        if 'data' in col.lower() or 'date' in col.lower():
+            df[col] = pd.to_datetime(df[col], errors='coerce')
+
+    return df
+
 
 def detect_encoding(file_path):
     with open(file_path, 'rb') as f:
         result = chardet.detect(f.read(2048))
     return result['encoding'] or 'utf-8'
+
 
 def detect_delimiter(file_path, encoding):
     with open(file_path, 'r', encoding=encoding) as f:
@@ -15,7 +44,6 @@ def detect_delimiter(file_path, encoding):
         delimiter_scores = {d: sample.count(d) for d in delimiters}
         return max(delimiter_scores, key=delimiter_scores.get)
 
-# (Apenas ajuste incremental no método load_spreadsheet - chunk maior e fallback)
 
 def load_spreadsheet(file_path, chunksize=None, progress_callback=None):
     ext = os.path.splitext(file_path)[1].lower()
@@ -34,9 +62,10 @@ def load_spreadsheet(file_path, chunksize=None, progress_callback=None):
         else:
             df = pd.read_csv(file_path, encoding=encoding, delimiter=delimiter, low_memory=False)
     elif ext in ['.xlsx', '.xls']:
-        df = pd.read_excel(file_path)
+        df = load_and_clean_excel(file_path)  # usa a função de limpeza aqui
         if progress_callback:
             progress_callback(len(df))
     else:
         raise ValueError('Formato de arquivo não suportado!')
+
     return df
