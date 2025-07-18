@@ -81,20 +81,23 @@ def generate_indicators(df):
 
         label_tipo = col_types.get(col) or "desconhecido"
 
+        # Datas
         if is_date_candidate(col):
             conv = safe_to_datetime(df[col])
-            indicators["agrupamentos"].append({
+            indicadores = {
                 "coluna": col,
                 "tipo": label_tipo,
                 "estatisticas": {
                     "min": str(conv.min()),
                     "max": str(conv.max())
                 }
-            })
+            }
+            indicators["agrupamentos"].append(indicadores)
             continue
 
+        # Numérico contínuo
         if is_numerical(col, df) and not is_categorical(col, df):
-            indicators["agrupamentos"].append({
+            indicadores = {
                 "coluna": col,
                 "tipo": label_tipo,
                 "estatisticas": {
@@ -102,9 +105,11 @@ def generate_indicators(df):
                     "max": float(df[col].max()),
                     "media": float(df[col].mean())
                 }
-            })
+            }
+            indicators["agrupamentos"].append(indicadores)
             continue
 
+        # Categórico, agrupamento por similaridade
         valores = df[[col, id_col]].dropna()
         value_counts = valores[col].value_counts()
         if len(value_counts) > 200:
@@ -137,10 +142,18 @@ def generate_indicators(df):
                 "ids": ",".join(sorted(ids))
             })
         tabela_df = pd.DataFrame(tabela).sort_values(by="frequencia", ascending=False)
-        indicators["agrupamentos"].append({
+        indicadores = {
             "coluna": col,
             "tipo": label_tipo,
-            "tabela": tabela_df
-        })
+            "tabela": tabela_df if not tabela_df.empty else None
+        }
+        indicators["agrupamentos"].append(indicadores)
+
+    # Robustez: garante que SEMPRE exista ao menos um dos campos
+    for grupo in indicators["agrupamentos"]:
+        if "tabela" not in grupo:
+            grupo["tabela"] = None
+        if "estatisticas" not in grupo:
+            grupo["estatisticas"] = None
 
     return indicators

@@ -1,4 +1,3 @@
-# gui/main_gui.py
 import tkinter as tk
 from tkinter import filedialog, messagebox, scrolledtext, ttk
 from core.loader import load_spreadsheet
@@ -9,6 +8,7 @@ from reports.reporter import export_indicators
 from config.settings import MAX_ROWS, MAX_FILE_SIZE_MB
 import threading
 import textwrap
+import queue
 
 def format_table(df, colunas, max_width=80, max_var_len=100):
     linhas = []
@@ -54,6 +54,9 @@ class SpreadsheetAnalyzerApp:
         self.output.pack(padx=8, pady=6)
         self.output.config(state='disabled')
 
+        self.msg_queue = queue.Queue()
+        self.is_processing = False
+
     def select_file(self):
         filetypes = [("Planilhas", "*.csv *.xlsx *.xls")]
         filename = filedialog.askopenfilename(title="Escolha a planilha", filetypes=filetypes)
@@ -64,6 +67,23 @@ class SpreadsheetAnalyzerApp:
             self.file_entry.insert(0, filename)
             self.file_entry.config(state='readonly')
 
+    def update_gui(self):
+        updated = False
+        while not self.msg_queue.empty():
+            msg, perc = self.msg_queue.get()
+            self.output.config(state='normal')
+            self.output.insert(tk.END, msg)
+            self.output.see(tk.END)
+            self.output.config(state='disabled')
+            if perc is not None:
+                self.progress_var.set(perc)
+            updated = True
+        if self.is_processing:
+            self.root.after(100, self.update_gui)
+        elif updated:
+            self.analyze_btn.config(state='normal')
+            self.progress_var.set(0)
+
     def start_analysis(self):
         if not self.selected_file:
             messagebox.showwarning("Aviso", "Selecione um arquivo primeiro.")
@@ -72,18 +92,23 @@ class SpreadsheetAnalyzerApp:
         self.output.config(state='normal')
         self.output.delete(1.0, tk.END)
         self.progress_var.set(0)
+        self.is_processing = True
         threading.Thread(target=self.analyze_file, daemon=True).start()
+        self.root.after(100, self.update_gui)
 
     def analyze_file(self):
         try:
             validate_file(self.selected_file, MAX_ROWS, MAX_FILE_SIZE_MB)
-
-            def progress_callback(processed_rows):
-                total = MAX_ROWS
-                perc = min(processed_rows / total * 100, 100)
-                self.progress_var.set(perc)
-
             ext = self.selected_file.split('.')[-1].lower()
+            last_perc = -1
+            def progress_callback(processed_rows):
+                nonlocal last_perc
+                perc = min(processed_rows / MAX_ROWS * 100, 100)
+                if int(perc) != int(last_perc):
+                    dots = '.' * ((int(perc) % 3) + 1)
+                    self.msg_queue.put((f"Processando{dots} ({int(perc)}%)\n", perc))
+                    last_perc = perc
+
             if ext == 'csv':
                 df = load_spreadsheet(self.selected_file, chunksize=50000, progress_callback=progress_callback)
             else:
@@ -94,21 +119,20 @@ class SpreadsheetAnalyzerApp:
                 raise ValueError(f"Limite de {MAX_ROWS} linhas excedido.")
 
             df = ensure_id_column(df)
-
-            # Normalização de CEP (se necessário)
             df = normalize_cep_column(df)
 
             indicators = generate_indicators(df)
-
-            report_text = f"Coluna de ID: {indicators['id_coluna']}\n"
-            report_text += f"Linhas: {indicators['total_linhas']}\nColunas: {indicators['total_colunas']}\n"
+            report_text = "🟦  **Análise da Planilha**\n" + "="*70 + "\n"
+            report_text += f"🔹 Coluna de ID:  {indicators['id_coluna']}\n"
+            report_text += f"🔹 Linhas:        {indicators['total_linhas']}\n"
+            report_text += f"🔹 Colunas:       {indicators['total_colunas']}\n"
+            report_text += "-"*70 + "\n"
 
             if not indicators["agrupamentos"]:
                 report_text += "\nNenhuma coluna com valores repetidos relevante para agrupamento."
             else:
                 for grupo in indicators["agrupamentos"]:
-                    report_text += f"\n{'='*60}\n"
-                    report_text += f"Top agrupamentos para '{grupo['coluna']}' (tipo detectado: {grupo.get('tipo', '-')})\n"
+                    report_text += "🔹 Top agrupamentos para:  [ " + grupo["coluna"] + f" ]   (tipo: {grupo.get('tipo','-')})\n"
                     if "tabela" in grupo and grupo["tabela"] is not None:
                         tabela = grupo["tabela"]
                         if "termo_base" in tabela.columns and "variantes" in tabela.columns:
@@ -117,28 +141,30 @@ class SpreadsheetAnalyzerApp:
                             cols = ["termo", "frequencia"]
                         else:
                             cols = list(tabela.columns[:3])
-                        tabela_exibir = tabela[cols].head(10)
+                        tabela_exibir = tabela[cols].head(12)
                         if tabela_exibir.empty:
                             report_text += "Nenhum termo encontrado.\n"
                         else:
                             report_text += format_table(tabela_exibir, cols) + "\n"
                     elif "estatisticas" in grupo:
                         stats = grupo["estatisticas"]
-                        report_text += "Estatísticas:\n"
+                        report_text += "• Estatísticas:\n"
                         for k, v in stats.items():
-                            report_text += f"  - {k}: {v}\n"
+                            report_text += f"   - {k:<7}: {v}\n"
                     else:
                         report_text += "Não há dados agrupados nem estatísticas.\n"
+                    report_text += "-"*70 + "\n"
 
-            self.output.insert(tk.END, report_text)
-            export_indicators(indicators, './output')
-            self.output.insert(tk.END, "\nRelatórios salvos em ./output")
+            self.msg_queue.put((report_text, 100))
+            try:
+                export_indicators(indicators, './output')
+                self.msg_queue.put(("\nRelatórios salvos em ./output\n", None))
+            except Exception as e:
+                self.msg_queue.put((f"\nErro ao salvar relatórios: {str(e)}\n", None))
         except Exception as e:
-            self.output.insert(tk.END, f"Erro ao processar: {str(e)}")
+            self.msg_queue.put((f"\n❌ Erro ao processar: {str(e)}\n", None))
         finally:
-            self.output.config(state='disabled')
-            self.analyze_btn.config(state='normal')
-            self.progress_var.set(0)
+            self.is_processing = False
 
 def run_gui():
     root = tk.Tk()

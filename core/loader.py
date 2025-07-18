@@ -15,6 +15,8 @@ def detect_delimiter(file_path, encoding):
         delimiter_scores = {d: sample.count(d) for d in delimiters}
         return max(delimiter_scores, key=delimiter_scores.get)
 
+# (Apenas ajuste incremental no método load_spreadsheet - chunk maior e fallback)
+
 def load_spreadsheet(file_path, chunksize=None, progress_callback=None):
     ext = os.path.splitext(file_path)[1].lower()
     if ext == '.csv':
@@ -23,16 +25,15 @@ def load_spreadsheet(file_path, chunksize=None, progress_callback=None):
         if chunksize:
             chunks = []
             total_rows = 0
-            for chunk in pd.read_csv(file_path, encoding=encoding, delimiter=delimiter, chunksize=chunksize):
+            for chunk in pd.read_csv(file_path, encoding=encoding, delimiter=delimiter, chunksize=chunksize, low_memory=False):
                 chunks.append(chunk)
                 total_rows += len(chunk)
                 if progress_callback:
                     progress_callback(total_rows)
             df = pd.concat(chunks, ignore_index=True)
         else:
-            df = pd.read_csv(file_path, encoding=encoding, delimiter=delimiter)
+            df = pd.read_csv(file_path, encoding=encoding, delimiter=delimiter, low_memory=False)
     elif ext in ['.xlsx', '.xls']:
-        # Excel não suporta leitura em chunks no pandas
         df = pd.read_excel(file_path)
         if progress_callback:
             progress_callback(len(df))
