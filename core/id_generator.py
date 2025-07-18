@@ -1,3 +1,4 @@
+# core/id_generator.py
 import uuid
 
 def ensure_id_column(df):

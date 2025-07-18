@@ -1,3 +1,4 @@
+# analysis/stopwords.py
 import unidecode
 from config.settings import DEFAULT_STOPWORDS
 

@@ -6,3 +6,6 @@ numpy
 unidecode
 rapidfuzz
 rdflib
+sentence-transformers
+scikit-learn
+tqdm

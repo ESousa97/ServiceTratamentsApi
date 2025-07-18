@@ -1,38 +1,45 @@
 import pandas as pd
-from rapidfuzz import process, fuzz
+from rapidfuzz import fuzz
+from analysis.detector import detect_column_types
+import unidecode
 import re
 
-# Instale rapidfuzz se não tiver: pip install rapidfuzz
+def is_id_column(col, df):
+    # Detecta se é uma coluna de id pelo nome ou se todos valores são únicos
+    return str(col).lower() in ['id', 'codigo', 'identificacao', 'code'] or df[col].is_unique
 
-STOPWORDS = {
-    "de", "da", "do", "das", "dos", "a", "e", "em", "na", "no", "para", "por", "com", "sem", "o", "os", "as", "um", "uma"
-}
+def is_numerical(col, df):
+    return pd.api.types.is_numeric_dtype(df[col])
 
-def normalize_term(term):
-    term = term.lower().strip()
-    term = re.sub(r'[^\w\s-]', '', term)  # remove pontuação exceto hífen
-    term = re.sub(r'\s+', ' ', term)
-    palavras = [w for w in term.split() if w not in STOPWORDS and len(w) > 2]
-    return ' '.join(palavras)
+def is_categorical(col, df):
+    if is_numerical(col, df):
+        return df[col].nunique() < min(30, len(df) // 5)
+    return False
 
-def detect_id_column(df):
-    for col in df.columns:
-        if df[col].is_unique:
-            return col
-    return None
+def is_date_candidate(col):
+    # Considera candidato a data só se o nome indicar
+    keywords = ['data', 'date', 'day', 'dia']
+    return any(k in unidecode.unidecode(str(col)).lower() for k in keywords)
 
-def detect_group_columns(df, id_col):
-    group_cols = []
-    for col in df.columns:
-        if col == id_col:
-            continue
-        nunique = df[col].nunique(dropna=True)
-        if nunique < len(df) * 0.8:
-            group_cols.append(col)
-    return group_cols
+def normalize_generic(val):
+    s = str(val).lower().strip()
+    s = unidecode.unidecode(s)
+    s = re.sub(r'[^\w\s-]', '', s)
+    return s
 
-def fuzzy_group_terms(terms, threshold=90):
-    """Agrupa termos similares com fuzzy matching."""
+def safe_to_datetime(series):
+    try:
+        sample = series.dropna().astype(str).head(50)
+        if sample.str.match(r'\d{4}-\d{2}-\d{2}').all():
+            return pd.to_datetime(series, format='%Y-%m-%d', errors='coerce')
+        else:
+            return pd.to_datetime(series, errors='coerce')
+    except:
+        return pd.to_datetime(series, errors='coerce')
+
+def fuzzy_cluster_terms(terms, threshold=90, max_terms=500):
+    if len(terms) > max_terms:
+        return [[term] for term in terms]
     clusters = []
     used = set()
     for term in terms:
@@ -49,8 +56,13 @@ def fuzzy_group_terms(terms, threshold=90):
         clusters.append(cluster)
     return clusters
 
-def generate_indicators(df, custom_stopwords=None):
-    id_col = detect_id_column(df)
+def generate_indicators(df):
+    col_types = detect_column_types(df)
+    id_col = None
+    for col in df.columns:
+        if is_id_column(col, df):
+            id_col = col
+            break
     if not id_col:
         df['_id'] = [str(i) for i in range(1, len(df)+1)]
         id_col = '_id'
@@ -61,22 +73,55 @@ def generate_indicators(df, custom_stopwords=None):
         "total_colunas": len(df.columns),
         "agrupamentos": []
     }
-    group_cols = detect_group_columns(df, id_col)
-    for col in group_cols:
-        # Normaliza e mapeia termos originais para normalizados
+    skip_cols = set([id_col])
+
+    for col in df.columns:
+        if col in skip_cols:
+            continue
+
+        label_tipo = col_types.get(col) or "desconhecido"
+
+        if is_date_candidate(col):
+            conv = safe_to_datetime(df[col])
+            indicators["agrupamentos"].append({
+                "coluna": col,
+                "tipo": label_tipo,
+                "estatisticas": {
+                    "min": str(conv.min()),
+                    "max": str(conv.max())
+                }
+            })
+            continue
+
+        if is_numerical(col, df) and not is_categorical(col, df):
+            indicators["agrupamentos"].append({
+                "coluna": col,
+                "tipo": label_tipo,
+                "estatisticas": {
+                    "min": float(df[col].min()),
+                    "max": float(df[col].max()),
+                    "media": float(df[col].mean())
+                }
+            })
+            continue
+
         valores = df[[col, id_col]].dropna()
+        value_counts = valores[col].value_counts()
+        if len(value_counts) > 200:
+            top_vals = value_counts.head(100).index
+            valores = valores[valores[col].isin(top_vals)]
+
         mapping = {}
         for idx, row in valores.iterrows():
             original = str(row[col]).strip()
-            norm = normalize_term(original)
+            norm = normalize_generic(original)
             if norm not in mapping:
                 mapping[norm] = {"originais": set(), "ids": set()}
             mapping[norm]["originais"].add(original)
             mapping[norm]["ids"].add(str(row[id_col]))
 
-        # Fuzzy group nos termos normalizados
         termos_normais = list(mapping.keys())
-        clusters = fuzzy_group_terms(termos_normais, threshold=90)  # pode ajustar para 85 ou 80 se quiser mais agressivo
+        clusters = fuzzy_cluster_terms(termos_normais, threshold=88, max_terms=500)
 
         tabela = []
         for cluster in clusters:
@@ -91,9 +136,11 @@ def generate_indicators(df, custom_stopwords=None):
                 "frequencia": len(ids),
                 "ids": ",".join(sorted(ids))
             })
-        tabela = pd.DataFrame(tabela).sort_values(by="frequencia", ascending=False)
+        tabela_df = pd.DataFrame(tabela).sort_values(by="frequencia", ascending=False)
         indicators["agrupamentos"].append({
             "coluna": col,
-            "tabela": tabela
+            "tipo": label_tipo,
+            "tabela": tabela_df
         })
+
     return indicators
