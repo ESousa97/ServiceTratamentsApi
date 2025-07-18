@@ -69,7 +69,6 @@ coverage.xml
 *.ipynb
 
 # Custom - Project Artifacts
-reports/
 *.xlsx
 *.xls
 
