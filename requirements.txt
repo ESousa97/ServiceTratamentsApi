@@ -12,3 +12,8 @@ tqdm
 dash
 dash-bootstrap-components
 flask
+
+# Interface Gráfica (PyQt5)
+pyqt5
+qdarkstyle
+qtawesome
