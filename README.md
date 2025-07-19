@@ -456,7 +456,6 @@ MIT License - Livre para uso comercial e pessoal
 <summary><strong>🚀 A aplicação está lenta, é normal?</strong></summary>
 
 Sim, especialmente na primeira execução ou com arquivos grandes. A análise semântica carrega modelos de 500MB+ e requer processamento intensivo. Para arquivos muito grandes (1M+ linhas), considere aumentar a RAM disponível.
-
 </details>
 
 <details>
@@ -484,7 +483,6 @@ Teoricamente ilimitado, mas na prática depende da RAM:
 - **16GB+ RAM**: 1M+ linhas
 
 </details>
-
 <details>
 <summary><strong>🐛 Como reportar bugs?</strong></summary>
 
@@ -507,3 +505,6 @@ Use as [GitHub Issues](https://github.com/ESousa97/analisador-de-planilhas-intel
 **© 2025 Intelligent Spreadsheet Analyzer | Desenvolvido com ❤️ por José Enoque**
 
 </div>
+
+
+> ✨ **Criado em:** 1 de mai. de 2024 às 20:40
