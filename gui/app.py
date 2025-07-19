@@ -165,7 +165,7 @@ app.index_string = '''
 <html>
 <head>
     {%metas%}
-    <title>ISA Dashboard</title>
+    <title>Dashboard</title>
     {%favicon%}
     {%css%}
     <style>
