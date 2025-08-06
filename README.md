@@ -508,4 +508,3 @@ Use as [GitHub Issues](https://github.com/ESousa97/analisador-de-planilhas-intel
 
 
 > ✨ **Criado em:** 1 de mai. de 2024 às 20:40
-
